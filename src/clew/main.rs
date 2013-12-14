@@ -2,7 +2,7 @@ extern mod gl;
 extern mod sdl2;
 extern mod ears;
 
-use gl::types::{GLfloat, GLuint, GLint};
+use gl::types::{GLfloat, GLuint, GLint, GLsizeiptr};
 
 fn compileShader(shader: GLuint) {
 	unsafe {
@@ -39,6 +39,7 @@ fn main() {
 	sdl2::init([sdl2::InitVideo]);
 	let width = 800;
 	let height = 600;
+
 	let window = match sdl2::video::Window::new("clew", sdl2::video::PosUndefined,
 	                                            sdl2::video::PosUndefined, width, height,
 	                                            [sdl2::video::OpenGL]) {
@@ -70,7 +71,7 @@ fn main() {
 		let mut vbo: GLuint = 0;
 		gl::GenBuffers(1, &mut vbo);
 		gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-		gl::BufferData(gl::ARRAY_BUFFER, (vertices.len() * std::mem::size_of::<GLfloat>()) as i64,
+		gl::BufferData(gl::ARRAY_BUFFER, (vertices.len() * std::mem::size_of::<GLfloat>()) as GLsizeiptr,
 		               std::cast::transmute(&vertices[0]), gl::STATIC_DRAW);
 
 		let vertexShader: GLuint = gl::CreateShader(gl::VERTEX_SHADER);
