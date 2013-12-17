@@ -1,10 +1,21 @@
 extern mod gl;
 extern mod sdl2;
 
-use gl::types::{GLfloat, GLuint, GLint, GLsizeiptr};
+use paths::Paths;
+use gl::types::{GLfloat, GLuint, GLint, GLsizeiptr, GLenum};
+use std::io::File;
 
-fn compileShader(shader: GLuint) {
+mod paths;
+
+fn compileShader(paths: &Paths, filename: &str, shaderType: GLenum) -> GLuint {
+	let mut reader = File::open(&paths.prefix.join(Path::new(filename))).unwrap();
+	let src = std::str::from_utf8_owned(reader.read_to_end());
 	unsafe {
+		let shader = gl::CreateShader(shaderType);
+		assert!(shader != 0);
+		src.with_c_str(|src| {
+			gl::ShaderSource(shader, 1, &src, std::ptr::null());
+		});
 		gl::CompileShader(shader);
 		let mut status: GLint = gl::FALSE as GLint;
 		gl::GetShaderiv(shader, gl::COMPILE_STATUS, &mut status);
@@ -16,25 +27,13 @@ fn compileShader(shader: GLuint) {
 			println(format!("Compiler log (length: {}):\n{}", length,
 			                std::str::raw::from_c_str(&buffer[0])));
 		}
+		shader
 	}
 }
 
-static vertexSource: &'static str =
-"#version 150\n\
-in vec2 position;\n\
-void main() {\n\
-   gl_Position = vec4(position, 0.0, 1.0);\n\
-}";
-
-static fragmentSource: &'static str =
-"#version 150\n\
-uniform vec3 triangleColor;\n\
-out vec4 outColor;\n\
-void main() {\n\
-   outColor = vec4(triangleColor, 1.0);\n\
-}";
-
 fn main() {
+	let paths = Paths::new();
+
 	sdl2::init([sdl2::InitVideo]);
 	let width = 800;
 	let height = 600;
@@ -73,18 +72,8 @@ fn main() {
 		gl::BufferData(gl::ARRAY_BUFFER, (vertices.len() * std::mem::size_of::<GLfloat>()) as GLsizeiptr,
 		               std::cast::transmute(&vertices[0]), gl::STATIC_DRAW);
 
-		let vertexShader: GLuint = gl::CreateShader(gl::VERTEX_SHADER);
-		assert!(vertexShader != 0);
-		vertexSource.with_c_str(|src| {
-			gl::ShaderSource(vertexShader, 1, &src, std::ptr::null());
-		});
-		compileShader(vertexShader);
-
-		let fragmentShader = gl::CreateShader(gl::FRAGMENT_SHADER);
-		fragmentSource.with_c_str(|src| {
-			gl::ShaderSource(fragmentShader, 1, &src, std::ptr::null());
-		});
-		compileShader(fragmentShader);
+		let vertexShader = compileShader(&paths, "data/glsl/simple.vert", gl::VERTEX_SHADER);
+		let fragmentShader = compileShader(&paths, "data/glsl/simple.frag", gl::FRAGMENT_SHADER);
 
 		let shaderProgram: GLuint = gl::CreateProgram();
 		assert!(shaderProgram != 0);
