@@ -1,13 +1,12 @@
 extern mod gl;
 extern mod sdl2;
-extern mod ears;
 
 use gl::types::{GLfloat, GLuint, GLint, GLsizeiptr};
 
 fn compileShader(shader: GLuint) {
 	unsafe {
 		gl::CompileShader(shader);
-		let mut status: GLint = 1234;
+		let mut status: GLint = gl::FALSE as GLint;
 		gl::GetShaderiv(shader, gl::COMPILE_STATUS, &mut status);
 		if status != gl::TRUE as GLint {
 			let mut buffer = [0i8, ..512];
