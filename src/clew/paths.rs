@@ -1,14 +1,18 @@
 use std::path::Path;
-use std::io::fs::readlink;
+use std::os::self_exe_path;
 
-struct Paths {
+pub struct Paths {
 	prefix: Path
 }
 
 impl Paths {
 	pub fn new() -> Paths {
-		let target = readlink(&Path::new("/proc/self/exe")).unwrap();
-		let prefix = target.join(Path::new("../.."));
+		let mut tmp = match self_exe_path() {
+			Some(p) => p,
+			None => fail!("Can't find exe path")
+		};
+		tmp.pop();
+		let prefix = tmp;
 		debug!("Prefix path: {}", prefix.as_str().unwrap());
 		return Paths{ prefix: prefix };
 	}
