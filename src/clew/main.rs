@@ -2,9 +2,11 @@ extern mod gl;
 extern mod sdl2;
 
 use paths::Paths;
+use texture::Texture;
 use gl::types::{GLfloat, GLuint, GLint, GLsizeiptr, GLenum};
 use std::io::File;
 
+mod texture;
 mod paths;
 
 fn compileShader(paths: &Paths, filename: &str, shaderType: GLenum) -> GLuint {
@@ -31,6 +33,49 @@ fn compileShader(paths: &Paths, filename: &str, shaderType: GLenum) -> GLuint {
 	}
 }
 
+fn drawTriangle(paths: &Paths) {
+    static vertices: [GLfloat, ..6] = [
+        0.0, 0.5,
+        0.5, -0.5,
+        -0.5, -0.5
+    ];
+
+    unsafe {
+        let mut vao: GLuint = -1;
+        gl::GenVertexArrays(1, &mut vao);
+        gl::BindVertexArray(vao);
+
+        let mut vbo: GLuint = 0;
+        gl::GenBuffers(1, &mut vbo);
+        gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
+        gl::BufferData(gl::ARRAY_BUFFER,
+                       (vertices.len() * std::mem::size_of::<GLfloat>()) as GLsizeiptr,
+                       std::cast::transmute(&vertices[0]), gl::STATIC_DRAW);
+
+        let vertexShader = compileShader(paths, "data/glsl/simple.vert", gl::VERTEX_SHADER);
+        let fragmentShader = compileShader(paths, "data/glsl/simple.frag", gl::FRAGMENT_SHADER);
+
+        let shaderProgram: GLuint = gl::CreateProgram();
+        assert!(shaderProgram != 0);
+        gl::AttachShader(shaderProgram, vertexShader);
+        gl::AttachShader(shaderProgram, fragmentShader);
+        gl::LinkProgram(shaderProgram);
+        gl::UseProgram(shaderProgram);
+
+        "position".with_c_str(|s| {
+            let posAttrib = gl::GetAttribLocation(shaderProgram, s);
+            assert!(posAttrib >= 0);
+            gl::VertexAttribPointer(posAttrib as GLuint, 2, gl::FLOAT, gl::FALSE, 0,
+                                    std::ptr::null());
+            gl::EnableVertexAttribArray(posAttrib as GLuint);
+        });
+
+        let uniColor = "triangleColor".with_c_str(|s| gl::GetUniformLocation(shaderProgram, s));
+        gl::Uniform3f(uniColor, std::num::sin(sdl2::get_ticks() as f32 * 0.01f32), 1.0, 0.0);
+        gl::DrawArrays(gl::TRIANGLES, 0, 3);
+    }
+}
+
 fn main() {
 	let paths = Paths::new();
 
@@ -53,44 +98,62 @@ fn main() {
 
 	gl::load_with(sdl2::video::gl_get_proc_address);
 
-	static vertices: [GLfloat, ..6] = [
-		0.0, 0.5,
-		0.5, -0.5,
-		-0.5, -0.5
-	];
-
-	let mut uniColor: GLint;
-
 	unsafe {
-		let mut vao: GLuint = -1;
-		gl::GenVertexArrays(1, &mut vao);
-		gl::BindVertexArray(vao);
+        // renderbuffer
+        let mut buffer: GLuint = 0;
+        gl::GenRenderbuffers(1, &mut buffer);
+        gl::BindRenderbuffer(gl::RENDERBUFFER, buffer);
+        gl::RenderbufferStorage(gl::RENDERBUFFER, gl::RGBA8, width as i32, height as i32);
 
-		let mut vbo: GLuint = 0;
-		gl::GenBuffers(1, &mut vbo);
-		gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-		gl::BufferData(gl::ARRAY_BUFFER, (vertices.len() * std::mem::size_of::<GLfloat>()) as GLsizeiptr,
-		               std::cast::transmute(&vertices[0]), gl::STATIC_DRAW);
+        // framebuffer
+        let mut fbo: GLuint = 0;
+        gl::GenFramebuffers(1, &mut fbo);
+        gl::BindFramebuffer(gl::FRAMEBUFFER, fbo);
+        gl::FramebufferRenderbuffer(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0, gl::RENDERBUFFER,
+                                    buffer);
 
-		let vertexShader = compileShader(&paths, "data/glsl/simple.vert", gl::VERTEX_SHADER);
-		let fragmentShader = compileShader(&paths, "data/glsl/simple.frag", gl::FRAGMENT_SHADER);
+        let texture = Texture::new(width as i32, height as i32);
+        assert!(texture.id != 0);
 
-		let shaderProgram: GLuint = gl::CreateProgram();
-		assert!(shaderProgram != 0);
-		gl::AttachShader(shaderProgram, vertexShader);
-		gl::AttachShader(shaderProgram, fragmentShader);
-		gl::LinkProgram(shaderProgram);
-		gl::UseProgram(shaderProgram);
+        gl::FramebufferTexture2D(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0, gl::TEXTURE_2D, texture.id,
+                                 0);
 
-		"position".with_c_str(|s| {
-			let posAttrib: GLint = gl::GetAttribLocation(shaderProgram, s);
-			assert!(posAttrib >= 0);
-			gl::VertexAttribPointer(posAttrib as GLuint, 2, gl::FLOAT, gl::FALSE, 0,
-			                        std::ptr::null());
-			gl::EnableVertexAttribArray(posAttrib as GLuint);
-		});
+        assert!(gl::CheckFramebufferStatus(gl::FRAMEBUFFER) == gl::FRAMEBUFFER_COMPLETE);
 
-		uniColor = "triangleColor".with_c_str(|s| gl::GetUniformLocation(shaderProgram, s));
+        drawTriangle(&paths);
+
+        gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
+        gl::BindRenderbuffer(gl::RENDERBUFFER, 0);
+
+        let vertexShader = compileShader(&paths, "data/glsl/texture.vert", gl::VERTEX_SHADER);
+        let fragmentShader = compileShader(&paths, "data/glsl/texture.frag", gl::FRAGMENT_SHADER);
+
+        let shaderProgram: GLuint = gl::CreateProgram();
+        assert!(shaderProgram != 0);
+        gl::AttachShader(shaderProgram, vertexShader);
+        gl::AttachShader(shaderProgram, fragmentShader);
+        gl::LinkProgram(shaderProgram);
+        gl::UseProgram(shaderProgram);
+
+        "position".with_c_str(|s| {
+            let posAttrib = gl::GetAttribLocation(shaderProgram, s);
+            assert!(posAttrib >= 0);
+            gl::VertexAttribPointer(posAttrib as GLuint, 2, gl::FLOAT, gl::FALSE, 0,
+                                    std::ptr::null());
+            gl::EnableVertexAttribArray(posAttrib as GLuint);
+        });
+
+        "texcoord".with_c_str(|s| {
+            let posAttrib = gl::GetAttribLocation(shaderProgram, s);
+            assert!(posAttrib >= 0);
+            gl::VertexAttribPointer(posAttrib as GLuint, 2, gl::FLOAT, gl::FALSE, 0,
+                                    std::cast::transmute(8 * std::mem::size_of::<GLfloat>()));
+            gl::EnableVertexAttribArray(posAttrib as GLuint);
+        });
+
+        let uniColor = "triangleColor".with_c_str(|s| gl::GetUniformLocation(shaderProgram, s));
+        gl::Uniform3f(uniColor, std::num::sin(sdl2::get_ticks() as f32 * 0.01f32), 1.0, 0.0);
+        gl::DrawArrays(gl::TRIANGLES, 0, 3);
  	}
 
 	'main : loop {
@@ -106,8 +169,7 @@ fn main() {
 				_ => {}
 			}
 		}
-		gl::Uniform3f(uniColor, std::num::sin(sdl2::get_ticks() as f32 * 0.01f32), 1.0, 0.0);
-		gl::DrawArrays(gl::TRIANGLES, 0, 3);
+        gl::DrawArrays(gl::TRIANGLES, 0, 3);
 		window.gl_swap_window();
 	}
 
