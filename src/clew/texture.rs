@@ -10,7 +10,6 @@ pub struct Texture {
 
 impl Texture {
     pub fn new(width: GLsizei, height: GLsizei) -> Texture {
-        println!("Creating texture {}x{}", width, height);
         let mut texture: GLuint = 0;
         unsafe {
             gl::GenTextures(1, &mut texture);

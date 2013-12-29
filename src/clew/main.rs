@@ -42,7 +42,7 @@ struct Triangle {
 
 fn drawTriangle(paths: &Paths) -> Triangle {
     static vertices: [GLfloat, ..6] = [
-        0.0, 0.5,
+        0.0, 0.2,
         0.5, -0.5,
         -0.5, -0.5
     ];
@@ -181,6 +181,10 @@ fn main() {
     let mut mouseX = 0.0;
     let mut mouseY = 0.0;
 
+    let mut last_ticks = sdl2::get_ticks();
+    let mut frames = 0;
+    let mut counter = 0;
+
 	'main : loop {
 		loop {
 			match sdl2::event::poll_event() {
@@ -198,6 +202,24 @@ fn main() {
 				_ => {}
 			}
 		}
+
+        let old = last_ticks;
+        last_ticks = sdl2::get_ticks();
+        counter += last_ticks - old;
+        frames += 1;
+        if counter >= 1000 {
+            counter -= 1000;
+            window.set_title(format!("clew - FPS: {}", frames));
+            frames = 0;
+        }
+        loop {
+            let dif = sdl2::get_ticks() - last_ticks;
+            if dif >= 8 {
+                break;
+            }
+            sdl2::timer::delay(8 - dif);
+        }
+
         gl::ClearColor(0.5, 0.5, 0.5, 1.0);
         gl::Clear(gl::COLOR_BUFFER_BIT);
 
