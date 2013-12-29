@@ -33,7 +33,14 @@ fn compileShader(paths: &Paths, filename: &str, shaderType: GLenum) -> GLuint {
 	}
 }
 
-fn drawTriangle(paths: &Paths) {
+struct Triangle {
+    vao: GLuint,
+    vbo: GLuint,
+    program: GLuint,
+    pos: GLint
+}
+
+fn drawTriangle(paths: &Paths) -> Triangle {
     static vertices: [GLfloat, ..6] = [
         0.0, 0.5,
         0.5, -0.5,
@@ -71,8 +78,12 @@ fn drawTriangle(paths: &Paths) {
         });
 
         let uniColor = "triangleColor".with_c_str(|s| gl::GetUniformLocation(shaderProgram, s));
-        gl::Uniform3f(uniColor, std::num::sin(sdl2::get_ticks() as f32 * 0.01f32), 1.0, 0.0);
-        gl::DrawArrays(gl::TRIANGLES, 0, 3);
+        assert!(uniColor != -1);
+        gl::Uniform3f(uniColor, 1.0, 1.0, 0.0);
+
+        let uniPos = "pos".with_c_str(|s| gl::GetUniformLocation(shaderProgram, s));
+        assert!(uniPos != -1);
+        Triangle{vao: vao, vbo: vbo, program: shaderProgram, pos: uniPos }
     }
 }
 
@@ -98,15 +109,23 @@ fn main() {
 
 	gl::load_with(sdl2::video::gl_get_proc_address);
 
+    let mut vao: GLuint = 0;
+    let mut vbo: GLuint;
+    let mut buffer: GLuint = 0;
+    let mut fbo: GLuint = 0;
+    let shaderProgram: GLuint = gl::CreateProgram();
+    assert!(shaderProgram != 0);
+
 	unsafe {
+        gl::GenVertexArrays(1, &mut vao);
+        gl::BindVertexArray(vao);
+
         // renderbuffer
-        let mut buffer: GLuint = 0;
         gl::GenRenderbuffers(1, &mut buffer);
         gl::BindRenderbuffer(gl::RENDERBUFFER, buffer);
         gl::RenderbufferStorage(gl::RENDERBUFFER, gl::RGBA8, width as i32, height as i32);
 
         // framebuffer
-        let mut fbo: GLuint = 0;
         gl::GenFramebuffers(1, &mut fbo);
         gl::BindFramebuffer(gl::FRAMEBUFFER, fbo);
         gl::FramebufferRenderbuffer(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0, gl::RENDERBUFFER,
@@ -114,22 +133,27 @@ fn main() {
 
         let texture = Texture::new(width as i32, height as i32);
         assert!(texture.id != 0);
+        vbo = texture.vbo;
+        assert!(vbo != 0);
 
         gl::FramebufferTexture2D(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0, gl::TEXTURE_2D, texture.id,
                                  0);
 
         assert!(gl::CheckFramebufferStatus(gl::FRAMEBUFFER) == gl::FRAMEBUFFER_COMPLETE);
 
-        drawTriangle(&paths);
+        gl::ClearColor(1.0, 0.0, 0.0, 1.0);
+        gl::Clear(gl::COLOR_BUFFER_BIT);
+//        drawTriangle(&paths);
 
         gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
         gl::BindRenderbuffer(gl::RENDERBUFFER, 0);
 
+        gl::BindVertexArray(vao);
+        gl::BindBuffer(gl::ARRAY_BUFFER, texture.vbo);
+
         let vertexShader = compileShader(&paths, "data/glsl/texture.vert", gl::VERTEX_SHADER);
         let fragmentShader = compileShader(&paths, "data/glsl/texture.frag", gl::FRAGMENT_SHADER);
 
-        let shaderProgram: GLuint = gl::CreateProgram();
-        assert!(shaderProgram != 0);
         gl::AttachShader(shaderProgram, vertexShader);
         gl::AttachShader(shaderProgram, fragmentShader);
         gl::LinkProgram(shaderProgram);
@@ -139,7 +163,7 @@ fn main() {
             let posAttrib = gl::GetAttribLocation(shaderProgram, s);
             assert!(posAttrib >= 0);
             gl::VertexAttribPointer(posAttrib as GLuint, 2, gl::FLOAT, gl::FALSE, 0,
-                                    std::ptr::null());
+                                    std::cast::transmute(8 * std::mem::size_of::<GLfloat>()));
             gl::EnableVertexAttribArray(posAttrib as GLuint);
         });
 
@@ -147,14 +171,14 @@ fn main() {
             let posAttrib = gl::GetAttribLocation(shaderProgram, s);
             assert!(posAttrib >= 0);
             gl::VertexAttribPointer(posAttrib as GLuint, 2, gl::FLOAT, gl::FALSE, 0,
-                                    std::cast::transmute(8 * std::mem::size_of::<GLfloat>()));
+                                    std::ptr::null());
             gl::EnableVertexAttribArray(posAttrib as GLuint);
         });
-
-        let uniColor = "triangleColor".with_c_str(|s| gl::GetUniformLocation(shaderProgram, s));
-        gl::Uniform3f(uniColor, std::num::sin(sdl2::get_ticks() as f32 * 0.01f32), 1.0, 0.0);
-        gl::DrawArrays(gl::TRIANGLES, 0, 3);
  	}
+
+    let triangle = drawTriangle(&paths);
+    let mut mouseX = 0.0;
+    let mut mouseY = 0.0;
 
 	'main : loop {
 		loop {
@@ -164,12 +188,38 @@ fn main() {
 					if key == sdl2::keycode::EscapeKey {
 						break 'main
 					}
-				}
+				},
+                sdl2::event::MouseMotionEvent(_, _, _, _, x, y, _, _) => {
+                    mouseX = x as GLfloat / width as GLfloat - 0.5;
+                    mouseY = -y as GLfloat / height as GLfloat + 0.5;
+                },
 				sdl2::event::NoEvent => break,
 				_ => {}
 			}
 		}
+        gl::ClearColor(0.5, 0.5, 0.5, 1.0);
+        gl::Clear(gl::COLOR_BUFFER_BIT);
+        gl::Uniform2f(triangle.pos, mouseX, mouseY);
+
+        gl::BindRenderbuffer(gl::RENDERBUFFER, buffer);
+        gl::BindFramebuffer(gl::FRAMEBUFFER, fbo);
+
+        gl::BindVertexArray(triangle.vao);
+        gl::BindBuffer(gl::ARRAY_BUFFER, triangle.vbo);
+        gl::UseProgram(triangle.program);
+
+        gl::ClearColor(mouseX, mouseY, 0.5, 1.0);
+        gl::Clear(gl::COLOR_BUFFER_BIT);
         gl::DrawArrays(gl::TRIANGLES, 0, 3);
+
+        gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
+        gl::BindRenderbuffer(gl::RENDERBUFFER, 0);
+
+        gl::BindVertexArray(vao);
+        gl::UseProgram(shaderProgram);
+        gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
+        gl::DrawArrays(gl::TRIANGLE_FAN, 0, 4);
+
 		window.gl_swap_window();
 	}
 

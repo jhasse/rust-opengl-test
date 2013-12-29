@@ -37,17 +37,16 @@ impl Texture {
             let x: GLfloat = imgWidth as GLfloat / width as GLfloat;
             let y: GLfloat = imgHeight as GLfloat / height as GLfloat;
             let vertexes: [GLfloat, ..16] = [
-                0.0f32, 0.0f32, 0.0f32, y, x, y, x, 0.0f32, // texture coordinates
-                0.0f32, 0.0f32,
-                0.0f32, imgHeight as GLfloat,
-                imgWidth as GLfloat, imgHeight as GLfloat,
-                imgWidth as GLfloat, 0.0f32
+                0.0, 0.0, 0.0, y, x, y, x, 0.0, // texture coordinates
+                -1.0, -1.0,
+                -1.0, 1.0,
+                1.0, 1.0,
+                1.0, -1.0
             ];
             let mut vertexBuffer: GLuint = 0;
             gl::GenBuffers(1, &mut vertexBuffer);
             assert!(vertexBuffer != 0);
-    //        gl::BindBuffer(gl::ARRAY_BUFFER, vertexBuffer);
-            gl::BindTexture(gl::TEXTURE_2D, 0);
+            gl::BindBuffer(gl::ARRAY_BUFFER, vertexBuffer);
 
             let mut vbo: GLuint = 0;
             gl::GenBuffers(1, &mut vbo);
