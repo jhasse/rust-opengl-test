@@ -113,6 +113,7 @@ fn main() {
     let mut vbo: GLuint;
     let mut buffer: GLuint = 0;
     let mut fbo: GLuint = 0;
+    let mut texture: Texture;
     let shaderProgram: GLuint = gl::CreateProgram();
     assert!(shaderProgram != 0);
 
@@ -131,7 +132,7 @@ fn main() {
         gl::FramebufferRenderbuffer(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0, gl::RENDERBUFFER,
                                     buffer);
 
-        let texture = Texture::new(width as i32, height as i32);
+        texture = Texture::new(width as i32, height as i32);
         assert!(texture.id != 0);
         vbo = texture.vbo;
         assert!(vbo != 0);
@@ -174,7 +175,7 @@ fn main() {
                                     std::ptr::null());
             gl::EnableVertexAttribArray(posAttrib as GLuint);
         });
- 	}
+    }
 
     let triangle = drawTriangle(&paths);
     let mut mouseX = 0.0;
@@ -199,7 +200,6 @@ fn main() {
 		}
         gl::ClearColor(0.5, 0.5, 0.5, 1.0);
         gl::Clear(gl::COLOR_BUFFER_BIT);
-        gl::Uniform2f(triangle.pos, mouseX, mouseY);
 
         gl::BindRenderbuffer(gl::RENDERBUFFER, buffer);
         gl::BindFramebuffer(gl::FRAMEBUFFER, fbo);
@@ -207,17 +207,22 @@ fn main() {
         gl::BindVertexArray(triangle.vao);
         gl::BindBuffer(gl::ARRAY_BUFFER, triangle.vbo);
         gl::UseProgram(triangle.program);
+        gl::Uniform2f(triangle.pos, mouseX, mouseY);
 
         gl::ClearColor(mouseX, mouseY, 0.5, 1.0);
         gl::Clear(gl::COLOR_BUFFER_BIT);
         gl::DrawArrays(gl::TRIANGLES, 0, 3);
 
-        gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
         gl::BindRenderbuffer(gl::RENDERBUFFER, 0);
 
+        // draw framebuffer
+        gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
         gl::BindVertexArray(vao);
         gl::UseProgram(shaderProgram);
-        gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
+
+        gl::ActiveTexture(gl::TEXTURE0);
+        gl::BindTexture(gl::TEXTURE_2D, texture.id);
+
         gl::DrawArrays(gl::TRIANGLE_FAN, 0, 4);
 
 		window.gl_swap_window();

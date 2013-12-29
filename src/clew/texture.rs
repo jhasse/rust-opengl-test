@@ -1,18 +1,7 @@
 extern mod gl;
 
-use gl::types::{GLuint, GLfloat, GLsizeiptr};
+use gl::types::{GLuint, GLfloat, GLsizeiptr, GLsizei, GLint};
 use std;
-
-fn nextPowerOf2(n: i32) -> i32 {
-    if n == 1 {
-        return 2;
-    }
-    let mut rval = 1;
-    while rval < n {
-        rval <<= 1;
-    }
-    rval
-}
 
 pub struct Texture {
     id: GLuint,
@@ -20,24 +9,20 @@ pub struct Texture {
 }
 
 impl Texture {
-    pub fn new(imgWidth: i32, imgHeight: i32) -> Texture {
-        // texture
-        let width = nextPowerOf2(imgWidth as i32);
-        let height = nextPowerOf2(imgHeight as i32);
+    pub fn new(width: GLsizei, height: GLsizei) -> Texture {
+        println!("Creating texture {}x{}", width, height);
         let mut texture: GLuint = 0;
         unsafe {
             gl::GenTextures(1, &mut texture);
             gl::BindTexture(gl::TEXTURE_2D, texture);
-            gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGBA as i32, width as i32,
-                           height as i32, 0, gl::RGBA, gl::UNSIGNED_BYTE, std::ptr::null());
+            gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGB as GLint, width, height, 0, gl::RGB,
+                           gl::UNSIGNED_BYTE, std::ptr::null());
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
-            let x: GLfloat = imgWidth as GLfloat / width as GLfloat;
-            let y: GLfloat = imgHeight as GLfloat / height as GLfloat;
             let vertexes: [GLfloat, ..16] = [
-                0.0, 0.0, 0.0, y, x, y, x, 0.0, // texture coordinates
+                0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, // texture coordinates
                 -1.0, -1.0,
                 -1.0, 1.0,
                 1.0, 1.0,
