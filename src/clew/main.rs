@@ -1,5 +1,5 @@
 extern mod gl;
-extern mod sdl2;
+extern mod glfw;
 
 use paths::Paths;
 use texture::Texture;
@@ -61,157 +61,152 @@ fn drawTriangle(paths: &Paths) -> Triangle {
     }
 }
 
+struct ErrorContext;
+impl glfw::ErrorCallback for ErrorContext {
+    fn call(&self, _: glfw::Error, description: ~str) {
+        println!("GLFW Error: {:s}", description);
+    }
+}
+
 fn main() {
 	let paths = Paths::new();
-
-	sdl2::init([sdl2::InitVideo]);
 	let width = 800;
 	let height = 600;
 
-	let window = match sdl2::video::Window::new("clew", sdl2::video::PosUndefined,
-	                                            sdl2::video::PosUndefined, width, height,
-	                                            [sdl2::video::OpenGL]) {
-		Ok(window) => window,
-		Err(err) => fail!(format!("failed to create window: {}", err))
-	};
+    glfw::set_error_callback(~ErrorContext);
 
-	let context = match window.gl_create_context() {
-		Ok(context) => context,
-		Err(err) => fail!(format!("failed to create context: {}", err))
-	};
-	window.gl_make_current(context);
+    do glfw::start {
+        let window = glfw::Window::create(width, height, "clew", glfw::Windowed)
+            .expect("Failed to create window.");
 
-	gl::load_with(sdl2::video::gl_get_proc_address);
+        window.make_context_current();
 
-    let mut vao: GLuint = 0;
-    let mut buffer: GLuint = 0;
-    let mut fbo: GLuint = 0;
-    let mut texture: Texture;
-    let shaderProgram = ShaderProgram::new();
+        gl::load_with(glfw::get_proc_address);
 
-	unsafe {
-        gl::GenVertexArrays(1, &mut vao);
-        gl::BindVertexArray(vao);
+        let mut vao: GLuint = 0;
+        let mut buffer: GLuint = 0;
+        let mut fbo: GLuint = 0;
+        let mut texture: Texture;
+        let shaderProgram = ShaderProgram::new();
 
-        // renderbuffer
-        gl::GenRenderbuffers(1, &mut buffer);
-        gl::BindRenderbuffer(gl::RENDERBUFFER, buffer);
-        gl::RenderbufferStorage(gl::RENDERBUFFER, gl::RGBA8, width as i32, height as i32);
+        unsafe {
+            gl::GenVertexArrays(1, &mut vao);
+            gl::BindVertexArray(vao);
 
-        // framebuffer
-        gl::GenFramebuffers(1, &mut fbo);
-        gl::BindFramebuffer(gl::FRAMEBUFFER, fbo);
-        gl::FramebufferRenderbuffer(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0, gl::RENDERBUFFER,
-                                    buffer);
+            // renderbuffer
+            gl::GenRenderbuffers(1, &mut buffer);
+            gl::BindRenderbuffer(gl::RENDERBUFFER, buffer);
+            gl::RenderbufferStorage(gl::RENDERBUFFER, gl::RGBA8, width as i32, height as i32);
 
-        texture = Texture::new(width as i32, height as i32);
+            // framebuffer
+            gl::GenFramebuffers(1, &mut fbo);
+            gl::BindFramebuffer(gl::FRAMEBUFFER, fbo);
+            gl::FramebufferRenderbuffer(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0, gl::RENDERBUFFER,
+                                        buffer);
 
-        gl::FramebufferTexture2D(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0, gl::TEXTURE_2D, texture.id,
-                                 0);
+            texture = Texture::new(width as i32, height as i32);
 
-        assert!(gl::CheckFramebufferStatus(gl::FRAMEBUFFER) == gl::FRAMEBUFFER_COMPLETE);
+            gl::FramebufferTexture2D(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0, gl::TEXTURE_2D,
+                                     texture.id, 0);
 
-        gl::ClearColor(1.0, 0.0, 0.0, 1.0);
-        gl::Clear(gl::COLOR_BUFFER_BIT);
-//        drawTriangle(&paths);
+            assert!(gl::CheckFramebufferStatus(gl::FRAMEBUFFER) == gl::FRAMEBUFFER_COMPLETE);
 
-        gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
-        gl::BindRenderbuffer(gl::RENDERBUFFER, 0);
+            gl::ClearColor(1.0, 0.0, 0.0, 1.0);
+            gl::Clear(gl::COLOR_BUFFER_BIT);
+    //        drawTriangle(&paths);
 
-        gl::BindVertexArray(vao);
-        gl::BindBuffer(gl::ARRAY_BUFFER, texture.vbo);
+            gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
+            gl::BindRenderbuffer(gl::RENDERBUFFER, 0);
 
-        let vertexShader = Shader::new(&paths, "data/glsl/texture.vert", gl::VERTEX_SHADER);
-        let fragmentShader = Shader::new(&paths, "data/glsl/texture.frag", gl::FRAGMENT_SHADER);
+            gl::BindVertexArray(vao);
+            gl::BindBuffer(gl::ARRAY_BUFFER, texture.vbo);
 
-        shaderProgram.attach(vertexShader);
-        shaderProgram.attach(fragmentShader);
-        shaderProgram.link();
-        shaderProgram.use_program();
+            let vertexShader = Shader::new(&paths, "data/glsl/texture.vert", gl::VERTEX_SHADER);
+            let fragmentShader = Shader::new(&paths, "data/glsl/texture.frag", gl::FRAGMENT_SHADER);
 
-        let posAttrib = shaderProgram.get_attrib_location("position");
-        gl::VertexAttribPointer(posAttrib, 2, gl::FLOAT, gl::FALSE, 0,
-                                std::cast::transmute(8 * std::mem::size_of::<GLfloat>()));
-        gl::EnableVertexAttribArray(posAttrib);
+            shaderProgram.attach(vertexShader);
+            shaderProgram.attach(fragmentShader);
+            shaderProgram.link();
+            shaderProgram.use_program();
 
-        let posAttrib = shaderProgram.get_attrib_location("texcoord");
-        gl::VertexAttribPointer(posAttrib, 2, gl::FLOAT, gl::FALSE, 0,
-                                std::ptr::null());
-        gl::EnableVertexAttribArray(posAttrib);
-    }
+            let posAttrib = shaderProgram.get_attrib_location("position");
+            gl::VertexAttribPointer(posAttrib, 2, gl::FLOAT, gl::FALSE, 0,
+                                    std::cast::transmute(8 * std::mem::size_of::<GLfloat>()));
+            gl::EnableVertexAttribArray(posAttrib);
 
-    let triangle = drawTriangle(&paths);
-    let mut mouseX = 0.0;
-    let mut mouseY = 0.0;
-
-    let mut last_ticks = sdl2::get_ticks();
-    let mut frames = 0;
-    let mut counter = 0;
-
-	'main : loop {
-		loop {
-			match sdl2::event::poll_event() {
-				sdl2::event::QuitEvent(_) => break 'main,
-				sdl2::event::KeyDownEvent(_, _, key, _, _) => {
-					if key == sdl2::keycode::EscapeKey {
-						break 'main
-					}
-				},
-                sdl2::event::MouseMotionEvent(_, _, _, _, x, y, _, _) => {
-                    mouseX = x as GLfloat / width as GLfloat - 0.5;
-                    mouseY = -y as GLfloat / height as GLfloat + 0.5;
-                },
-				sdl2::event::NoEvent => break,
-				_ => {}
-			}
-		}
-
-        let old = last_ticks;
-        last_ticks = sdl2::get_ticks();
-        counter += last_ticks - old;
-        frames += 1;
-        if counter >= 1000 {
-            counter -= 1000;
-            window.set_title(format!("clew - FPS: {}", frames));
-            frames = 0;
+            let posAttrib = shaderProgram.get_attrib_location("texcoord");
+            gl::VertexAttribPointer(posAttrib, 2, gl::FLOAT, gl::FALSE, 0,
+                                    std::ptr::null());
+            gl::EnableVertexAttribArray(posAttrib);
         }
-        loop {
-            let dif = sdl2::get_ticks() - last_ticks;
-            if dif >= 8 {
-                break;
+
+        let triangle = drawTriangle(&paths);
+
+        let mut last_time = glfw::get_time();
+        let mut frames = 0.0;
+        let mut counter = 0.0;
+
+        let mut timer = std::io::timer::Timer::new();
+        let joystick = glfw::Joystick1;
+
+        while !window.should_close() {
+            glfw::poll_events();
+
+            let old = last_time;
+            last_time = glfw::get_time();
+            counter += last_time - old;
+            frames += 1.0;
+            if counter >= 1.0 {
+                frames *= counter;
+                counter -= 1.0;
+                window.set_title(format!("clew - FPS: {}", frames as int));
+                frames = 0.0;
             }
-            sdl2::timer::delay(8 - dif);
+            loop {
+                let dif = glfw::get_time() - last_time;
+                if dif >= 0.008 {
+                    break;
+                }
+                match timer {
+                    Some(ref mut t) => t.sleep(((0.008 - dif) * 1000.0) as u64),
+                    None => ()
+                }
+            }
+
+            gl::ClearColor(0.5, 0.5, 0.5, 1.0);
+            gl::Clear(gl::COLOR_BUFFER_BIT);
+
+            gl::BindRenderbuffer(gl::RENDERBUFFER, buffer);
+            gl::BindFramebuffer(gl::FRAMEBUFFER, fbo);
+
+            gl::BindVertexArray(triangle.vao);
+            gl::BindBuffer(gl::ARRAY_BUFFER, triangle.vbo);
+            triangle.program.use_program();
+
+            if joystick.is_present() {
+                gl::Uniform2f(triangle.pos, joystick.get_axes()[0], joystick.get_axes()[1]);
+                gl::ClearColor(joystick.get_axes()[2], joystick.get_axes()[3], 0.5, 1.0);
+            } else {
+                gl::Uniform2f(triangle.pos, 0.5, 0.5);
+                gl::ClearColor(0.0, 0.0, 0.0, 1.0);
+            }
+
+            gl::Clear(gl::COLOR_BUFFER_BIT);
+            gl::DrawArrays(gl::TRIANGLES, 0, 3);
+
+            gl::BindRenderbuffer(gl::RENDERBUFFER, 0);
+
+            // draw framebuffer
+            gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
+            gl::BindVertexArray(vao);
+            shaderProgram.use_program();
+
+            gl::ActiveTexture(gl::TEXTURE0);
+            gl::BindTexture(gl::TEXTURE_2D, texture.id);
+
+            gl::DrawArrays(gl::TRIANGLE_FAN, 0, 4);
+
+            window.swap_buffers();
         }
-
-        gl::ClearColor(0.5, 0.5, 0.5, 1.0);
-        gl::Clear(gl::COLOR_BUFFER_BIT);
-
-        gl::BindRenderbuffer(gl::RENDERBUFFER, buffer);
-        gl::BindFramebuffer(gl::FRAMEBUFFER, fbo);
-
-        gl::BindVertexArray(triangle.vao);
-        gl::BindBuffer(gl::ARRAY_BUFFER, triangle.vbo);
-        triangle.program.use_program();
-        gl::Uniform2f(triangle.pos, mouseX, mouseY);
-
-        gl::ClearColor(mouseX, mouseY, 0.5, 1.0);
-        gl::Clear(gl::COLOR_BUFFER_BIT);
-        gl::DrawArrays(gl::TRIANGLES, 0, 3);
-
-        gl::BindRenderbuffer(gl::RENDERBUFFER, 0);
-
-        // draw framebuffer
-        gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
-        gl::BindVertexArray(vao);
-        shaderProgram.use_program();
-
-        gl::ActiveTexture(gl::TEXTURE0);
-        gl::BindTexture(gl::TEXTURE_2D, texture.id);
-
-        gl::DrawArrays(gl::TRIANGLE_FAN, 0, 4);
-
-		window.gl_swap_window();
-	}
-
-//	sdl2::quit();
+    }
 }

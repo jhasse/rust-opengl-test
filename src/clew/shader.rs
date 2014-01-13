@@ -29,8 +29,8 @@ impl Shader {
                 let mut length: i32 = 0;
                 gl::GetShaderInfoLog(shader, buffer.len() as i32, &mut length,
                                      &mut buffer[0]);
-                println(format!("Compiler log (length: {}):\n{}", length,
-                                std::str::raw::from_c_str(&buffer[0])));
+                println!("Compiler log (length: {}):\n{}", length,
+                         std::str::raw::from_c_str(&buffer[0]));
             }
             Shader{ id: shader }
         }
