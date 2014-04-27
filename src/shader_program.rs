@@ -1,4 +1,4 @@
-extern mod gl;
+extern crate gl;
 
 use shader::Shader;
 use gl::types::{GLuint, GLint};

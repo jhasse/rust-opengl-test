@@ -1,5 +1,5 @@
-extern mod gl;
-extern mod glfw;
+extern crate gl;
+extern crate glfw;
 
 use paths::Paths;
 use texture::Texture;
@@ -75,7 +75,7 @@ fn main() {
 
     glfw::set_error_callback(~ErrorContext);
 
-    do glfw::start {
+    glfw::start(proc() {
         let window = glfw::Window::create(width, height, "clew", glfw::Windowed)
             .expect("Failed to create window.");
 
@@ -208,5 +208,5 @@ fn main() {
 
             window.swap_buffers();
         }
-    }
+    });
 }

@@ -1,4 +1,4 @@
-extern mod gl;
+extern crate gl;
 
 use gl::types::{GLuint, GLint, GLenum};
 use std::io::File;

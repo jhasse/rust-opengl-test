@@ -13,7 +13,7 @@ impl Paths {
 		};
 		tmp.pop();
 		let prefix = tmp;
-		debug!("Prefix path: {}", prefix.as_str().unwrap());
+		println!("Prefix path: {}", prefix.as_str().unwrap());
 		return Paths{ prefix: prefix };
 	}
 }
