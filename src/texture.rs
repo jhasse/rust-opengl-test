@@ -6,8 +6,8 @@ use std;
 use std::mem;
 
 pub struct Texture {
-    id: GLuint,
-    vbo: GLuint
+    pub id: GLuint,
+    pub vbo: GLuint
 }
 
 impl Texture {

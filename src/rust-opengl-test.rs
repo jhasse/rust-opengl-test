@@ -12,6 +12,7 @@ use shader_program::ShaderProgram;
 use gl::types::{GLfloat, GLuint, GLint, GLsizeiptr};
 use std::cell::Cell;
 use std::mem;
+use glfw::Context;
 
 mod texture;
 mod paths;
@@ -25,7 +26,7 @@ struct Triangle {
     pos: GLint
 }
 
-fn drawTriangle(paths: &Paths) -> Triangle {
+fn draw_triangle(paths: &Paths) -> Triangle {
     static vertices: [GLfloat, ..6] = [
         0.0, 0.2,
         0.5, -0.5,
@@ -89,12 +90,12 @@ fn main() {
         }
     )).unwrap();
 
-    let (window, events) = glfw.create_window(width, height, "rust-opengl-test", glfw::Windowed)
+    let (window, _) = glfw.create_window(width, height, "rust-opengl-test", glfw::Windowed)
         .expect("Failed to create window.");
 
     window.make_current();
 
-    gl::load_with(glfw.get_proc_address);
+    gl::load_with(|s| glfw.get_proc_address(s));
 
     let mut vao: GLuint = 0;
     let mut buffer: GLuint = 0;
@@ -126,7 +127,7 @@ fn main() {
 
         gl::ClearColor(1.0, 0.0, 0.0, 1.0);
         gl::Clear(gl::COLOR_BUFFER_BIT);
-//        drawTriangle(&paths);
+//        draw_triangle(&paths);
 
         gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
         gl::BindRenderbuffer(gl::RENDERBUFFER, 0);
@@ -144,7 +145,7 @@ fn main() {
 
         let posAttrib = shaderProgram.get_attrib_location("position");
         gl::VertexAttribPointer(posAttrib, 2, gl::FLOAT, gl::FALSE, 0,
-                                8 * std::mem::size_of::<GLfloat>());
+                                mem::transmute(8 * std::mem::size_of::<GLfloat>()));
         gl::EnableVertexAttribArray(posAttrib);
 
         let posAttrib = shaderProgram.get_attrib_location("texcoord");
@@ -153,14 +154,14 @@ fn main() {
         gl::EnableVertexAttribArray(posAttrib);
     }
 
-    let triangle = drawTriangle(&paths);
+    let triangle = draw_triangle(&paths);
 
     let mut last_time = glfw.get_time();
     let mut frames = 0.0;
     let mut counter = 0.0;
 
     let mut timer = std::io::timer::Timer::new();
-    let joystick = glfw::Joystick1;
+    let joystick = glfw::Joystick{ id: glfw::Joystick1, glfw: glfw };
 
     while !window.should_close() {
         glfw.poll_events();
@@ -172,7 +173,7 @@ fn main() {
         if counter >= 1.0 {
             frames *= counter;
             counter -= 1.0;
-            window.set_title(format!("clew - FPS: {}", frames as int));
+            window.set_title(format!("clew - FPS: {}", frames as int).as_slice());
             frames = 0.0;
         }
         loop {
@@ -181,8 +182,8 @@ fn main() {
                 break;
             }
             match timer {
-                Some(ref mut t) => t.sleep(((0.008 - dif) * 1000.0) as u64),
-                None => ()
+                Ok(ref mut t) => t.sleep(((0.008 - dif) * 1000.0) as u64),
+                Err(_) => ()
             }
         }
 
@@ -197,8 +198,12 @@ fn main() {
         triangle.program.use_program();
 
         if joystick.is_present() {
-            gl::Uniform2f(triangle.pos, joystick.get_axes()[0], joystick.get_axes()[1]);
-            gl::ClearColor(joystick.get_axes()[2], joystick.get_axes()[3], 0.5, 1.0);
+            gl::Uniform2f(triangle.pos,
+                          joystick.get_axes().get(0).clone(),
+                          joystick.get_axes().get(1).clone());
+            gl::ClearColor(joystick.get_axes().get(2).clone(),
+                           joystick.get_axes().get(3).clone(),
+                           0.5, 1.0);
         } else {
             gl::Uniform2f(triangle.pos, 0.5, 0.5);
             gl::ClearColor(0.0, 0.0, 0.0, 1.0);

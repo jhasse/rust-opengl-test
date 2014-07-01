@@ -4,7 +4,7 @@ use shader::Shader;
 use gl::types::{GLuint, GLint};
 
 pub struct ShaderProgram {
-    id: GLuint,
+    pub id: GLuint,
 }
 
 impl ShaderProgram {

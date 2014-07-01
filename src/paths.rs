@@ -2,7 +2,7 @@ use std::path::Path;
 use std::os::self_exe_path;
 
 pub struct Paths {
-	prefix: Path
+	pub prefix: Path
 }
 
 impl Paths {

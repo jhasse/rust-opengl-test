@@ -6,7 +6,7 @@ use std;
 use paths::Paths;
 
 pub struct Shader {
-    id: GLuint,
+    pub id: GLuint,
 }
 
 impl Shader {
