@@ -1,5 +1,2 @@
-.rust/
-build/
-bin/
-lib/
+target/
 *.sublime-workspace

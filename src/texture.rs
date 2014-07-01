@@ -1,7 +1,9 @@
 extern crate gl;
+extern crate log;
 
 use gl::types::{GLuint, GLfloat, GLsizeiptr, GLsizei, GLint};
 use std;
+use std::mem;
 
 pub struct Texture {
     id: GLuint,
@@ -39,7 +41,7 @@ impl Texture {
         unsafe {
             gl::BufferData(gl::ARRAY_BUFFER,
                            (vertexes.len() * std::mem::size_of::<GLfloat>()) as GLsizeiptr,
-                           std::cast::transmute(&vertexes[0]), gl::STATIC_DRAW);
+                           mem::transmute(&vertexes[0]), gl::STATIC_DRAW);
         }
 
         Texture{ id: texture, vbo: vbo }

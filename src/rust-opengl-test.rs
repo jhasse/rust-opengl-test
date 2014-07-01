@@ -2,7 +2,8 @@
 
 extern crate gl;
 extern crate glfw;
-#[phase(syntax, link)] extern crate log;
+#[phase(plugin)] extern crate log;
+extern crate log;
 
 use paths::Paths;
 use texture::Texture;
@@ -10,6 +11,7 @@ use shader::Shader;
 use shader_program::ShaderProgram;
 use gl::types::{GLfloat, GLuint, GLint, GLsizeiptr};
 use std::cell::Cell;
+use std::mem;
 
 mod texture;
 mod paths;
@@ -40,7 +42,7 @@ fn drawTriangle(paths: &Paths) -> Triangle {
         gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
         gl::BufferData(gl::ARRAY_BUFFER,
                        (vertices.len() * std::mem::size_of::<GLfloat>()) as GLsizeiptr,
-                       std::cast::transmute(&vertices[0]), gl::STATIC_DRAW);
+                       mem::transmute(&vertices[0]), gl::STATIC_DRAW);
 
         let vertexShader = Shader::new(paths, "data/glsl/simple.vert", gl::VERTEX_SHADER);
         let fragmentShader = Shader::new(paths, "data/glsl/simple.frag", gl::FRAGMENT_SHADER);
@@ -65,13 +67,13 @@ fn drawTriangle(paths: &Paths) -> Triangle {
     }
 }
 
-fn error_callback(_: glfw::Error, description: ~str, error_count: &Cell<uint>) {
+fn error_callback(_: glfw::Error, description: String, error_count: &Cell<uint>) {
     error!("GLFW error {}: {}", error_count.get(), description);
     error_count.set(error_count.get() + 1);
 }
 
 #[start]
-fn start(argc: int, argv: **u8) -> int {
+fn start(argc: int, argv: *const *const u8) -> int {
     native::start(argc, argv, main)
 }
 
@@ -87,10 +89,10 @@ fn main() {
         }
     )).unwrap();
 
-    let window = glfw.create_window(width, height, "clew", glfw::Windowed)
+    let (window, events) = glfw.create_window(width, height, "rust-opengl-test", glfw::Windowed)
         .expect("Failed to create window.");
 
-    window.make_context_current();
+    window.make_current();
 
     gl::load_with(glfw.get_proc_address);
 
@@ -142,7 +144,7 @@ fn main() {
 
         let posAttrib = shaderProgram.get_attrib_location("position");
         gl::VertexAttribPointer(posAttrib, 2, gl::FLOAT, gl::FALSE, 0,
-                                std::cast::transmute(8 * std::mem::size_of::<GLfloat>()));
+                                8 * std::mem::size_of::<GLfloat>());
         gl::EnableVertexAttribArray(posAttrib);
 
         let posAttrib = shaderProgram.get_attrib_location("texcoord");

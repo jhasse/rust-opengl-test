@@ -3,8 +3,6 @@ extern crate gl;
 use shader::Shader;
 use gl::types::{GLuint, GLint};
 
-mod shader;
-
 pub struct ShaderProgram {
     id: GLuint,
 }
