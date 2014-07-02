@@ -1,4 +1,4 @@
-#version 150
+#version 130
 
 uniform vec2 pos;
 

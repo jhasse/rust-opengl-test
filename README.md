@@ -1,4 +1,4 @@
-# Rust Opengl Test
+# Rust OpenGL Test
 
 ```
 cargo build
