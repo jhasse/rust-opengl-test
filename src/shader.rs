@@ -14,7 +14,7 @@ impl Shader {
         let mut reader = File::open(&paths.prefix.join(Path::new(filename))).unwrap();
         match reader.read_to_end() {
             Ok(content) => {
-                let src = std::str::from_utf8_owned(content).unwrap();
+                let src = String::from_utf8(content).unwrap();
                 unsafe {
                     let shader = gl::CreateShader(shaderType);
                     assert!(shader != 0);

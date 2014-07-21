@@ -1,5 +1,5 @@
 # Rust OpenGL Test
 
 ```
-cargo build
+cargo run
 ```

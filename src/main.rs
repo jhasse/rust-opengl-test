@@ -199,10 +199,10 @@ fn main() {
 
         if joystick.is_present() {
             gl::Uniform2f(triangle.pos,
-                          joystick.get_axes().get(0).clone(),
-                          joystick.get_axes().get(1).clone());
-            gl::ClearColor(joystick.get_axes().get(2).clone(),
-                           joystick.get_axes().get(3).clone(),
+                          joystick.get_axes()[0].clone(),
+                          joystick.get_axes()[1].clone());
+            gl::ClearColor(joystick.get_axes()[2].clone(),
+                           joystick.get_axes()[3].clone(),
                            0.5, 1.0);
         } else {
             gl::Uniform2f(triangle.pos, 0.5, 0.5);
