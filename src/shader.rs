@@ -10,13 +10,13 @@ pub struct Shader {
 }
 
 impl Shader {
-    pub fn new(paths: &Paths, filename: &str, shaderType: GLenum) -> Shader {
+    pub fn new(paths: &Paths, filename: &str, shader_type: GLenum) -> Shader {
         let mut reader = File::open(&paths.prefix.join(Path::new(filename))).unwrap();
         match reader.read_to_end() {
             Ok(content) => {
                 let src = String::from_utf8(content).unwrap();
                 unsafe {
-                    let shader = gl::CreateShader(shaderType);
+                    let shader = gl::CreateShader(shader_type);
                     assert!(shader != 0);
                     src.with_c_str(|src| {
                         gl::ShaderSource(shader, 1, &src, std::ptr::null());

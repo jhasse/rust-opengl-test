@@ -29,10 +29,10 @@ impl Texture {
             1.0, 1.0,
             1.0, -1.0
         ];
-        let mut vertexBuffer: GLuint = 0;
-        unsafe { gl::GenBuffers(1, &mut vertexBuffer); }
-        assert!(vertexBuffer != 0);
-        gl::BindBuffer(gl::ARRAY_BUFFER, vertexBuffer);
+        let mut vertex_buffer: GLuint = 0;
+        unsafe { gl::GenBuffers(1, &mut vertex_buffer); }
+        assert!(vertex_buffer != 0);
+        gl::BindBuffer(gl::ARRAY_BUFFER, vertex_buffer);
 
         let mut vbo: GLuint = 0;
         unsafe { gl::GenBuffers(1, &mut vbo); }

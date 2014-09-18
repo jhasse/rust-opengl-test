@@ -4,6 +4,7 @@ extern crate gl;
 extern crate glfw;
 #[phase(plugin)] extern crate log;
 extern crate log;
+extern crate native;
 
 use paths::Paths;
 use texture::Texture;
@@ -45,26 +46,26 @@ fn draw_triangle(paths: &Paths) -> Triangle {
                        (vertices.len() * std::mem::size_of::<GLfloat>()) as GLsizeiptr,
                        mem::transmute(&vertices[0]), gl::STATIC_DRAW);
 
-        let vertexShader = Shader::new(paths, "data/glsl/simple.vert", gl::VERTEX_SHADER);
-        let fragmentShader = Shader::new(paths, "data/glsl/simple.frag", gl::FRAGMENT_SHADER);
+        let vertex_shader = Shader::new(paths, "data/glsl/simple.vert", gl::VERTEX_SHADER);
+        let fragment_shader = Shader::new(paths, "data/glsl/simple.frag", gl::FRAGMENT_SHADER);
 
-        let shaderProgram = ShaderProgram::new();
-        shaderProgram.attach(vertexShader);
-        shaderProgram.attach(fragmentShader);
-        shaderProgram.link();
-        shaderProgram.use_program();
+        let shader_program = ShaderProgram::new();
+        shader_program.attach(vertex_shader);
+        shader_program.attach(fragment_shader);
+        shader_program.link();
+        shader_program.use_program();
 
-        let posAttrib = shaderProgram.get_attrib_location("position");
-        gl::VertexAttribPointer(posAttrib, 2, gl::FLOAT, gl::FALSE, 0, std::ptr::null());
-        gl::EnableVertexAttribArray(posAttrib);
+        let pos_attrib = shader_program.get_attrib_location("position");
+        gl::VertexAttribPointer(pos_attrib, 2, gl::FLOAT, gl::FALSE, 0, std::ptr::null());
+        gl::EnableVertexAttribArray(pos_attrib);
 
-        let uniColor = shaderProgram.get_uniform_location("triangleColor");
-        assert!(uniColor != -1);
-        gl::Uniform3f(uniColor, 1.0, 1.0, 0.0);
+        let uni_color = shader_program.get_uniform_location("triangleColor");
+        assert!(uni_color != -1);
+        gl::Uniform3f(uni_color, 1.0, 1.0, 0.0);
 
-        let uniPos = shaderProgram.get_uniform_location("pos");
-        assert!(uniPos != -1);
-        Triangle{vao: vao, vbo: vbo, program: shaderProgram, pos: uniPos }
+        let uni_pos = shader_program.get_uniform_location("pos");
+        assert!(uni_pos != -1);
+        Triangle{vao: vao, vbo: vbo, program: shader_program, pos: uni_pos }
     }
 }
 
@@ -95,13 +96,13 @@ fn main() {
 
     window.make_current();
 
-    gl::load_with(|s| glfw.get_proc_address(s));
+    gl::load_with(|s| window.get_proc_address(s));
 
     let mut vao: GLuint = 0;
     let mut buffer: GLuint = 0;
     let mut fbo: GLuint = 0;
     let mut texture: Texture;
-    let shaderProgram = ShaderProgram::new();
+    let shader_program = ShaderProgram::new();
 
     unsafe {
         gl::GenVertexArrays(1, &mut vao);
@@ -135,23 +136,23 @@ fn main() {
         gl::BindVertexArray(vao);
         gl::BindBuffer(gl::ARRAY_BUFFER, texture.vbo);
 
-        let vertexShader = Shader::new(&paths, "data/glsl/texture.vert", gl::VERTEX_SHADER);
-        let fragmentShader = Shader::new(&paths, "data/glsl/texture.frag", gl::FRAGMENT_SHADER);
+        let vertex_shader = Shader::new(&paths, "data/glsl/texture.vert", gl::VERTEX_SHADER);
+        let fragment_shader = Shader::new(&paths, "data/glsl/texture.frag", gl::FRAGMENT_SHADER);
 
-        shaderProgram.attach(vertexShader);
-        shaderProgram.attach(fragmentShader);
-        shaderProgram.link();
-        shaderProgram.use_program();
+        shader_program.attach(vertex_shader);
+        shader_program.attach(fragment_shader);
+        shader_program.link();
+        shader_program.use_program();
 
-        let posAttrib = shaderProgram.get_attrib_location("position");
-        gl::VertexAttribPointer(posAttrib, 2, gl::FLOAT, gl::FALSE, 0,
+        let pos_attrib = shader_program.get_attrib_location("position");
+        gl::VertexAttribPointer(pos_attrib, 2, gl::FLOAT, gl::FALSE, 0,
                                 mem::transmute(8 * std::mem::size_of::<GLfloat>()));
-        gl::EnableVertexAttribArray(posAttrib);
+        gl::EnableVertexAttribArray(pos_attrib);
 
-        let posAttrib = shaderProgram.get_attrib_location("texcoord");
-        gl::VertexAttribPointer(posAttrib, 2, gl::FLOAT, gl::FALSE, 0,
+        let pos_attrib = shader_program.get_attrib_location("texcoord");
+        gl::VertexAttribPointer(pos_attrib, 2, gl::FLOAT, gl::FALSE, 0,
                                 std::ptr::null());
-        gl::EnableVertexAttribArray(posAttrib);
+        gl::EnableVertexAttribArray(pos_attrib);
     }
 
     let triangle = draw_triangle(&paths);
@@ -182,7 +183,8 @@ fn main() {
                 break;
             }
             match timer {
-                Ok(ref mut t) => t.sleep(((0.008 - dif) * 1000.0) as u64),
+                Ok(ref mut t) =>
+                    t.sleep(std::time::Duration::milliseconds(((0.008 - dif) * 1000.0) as i64)),
                 Err(_) => ()
             }
         }
@@ -217,7 +219,7 @@ fn main() {
         // draw framebuffer
         gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
         gl::BindVertexArray(vao);
-        shaderProgram.use_program();
+        shader_program.use_program();
 
         gl::ActiveTexture(gl::TEXTURE0);
         gl::BindTexture(gl::TEXTURE_2D, texture.id);
