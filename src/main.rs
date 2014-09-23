@@ -5,6 +5,7 @@ extern crate glfw;
 #[phase(plugin)] extern crate log;
 extern crate log;
 extern crate native;
+extern crate freetype;
 
 use paths::Paths;
 use texture::Texture;
@@ -19,6 +20,7 @@ mod texture;
 mod paths;
 mod shader;
 mod shader_program;
+mod font;
 
 struct Triangle {
     vao: GLuint,
@@ -81,6 +83,11 @@ fn start(argc: int, argv: *const *const u8) -> int {
 
 fn main() {
 	let paths = Paths::new();
+
+    font::init();
+    let face = font::face::Face::new(&paths, "Lato-Lig.otf", 16);
+    let text = font::text::Text::new(&face, "Hallo Welt!");
+
 	let width = 800;
 	let height = 600;
 
