@@ -1,21 +1,19 @@
 [package]
-
 name = "rust-opengl-test"
 version = "0.1.0"
 authors = [ "jhasse@gmail.com" ]
 
 [[bin]]
-
-name = "rust-opengl-test" # the name of the executable to generate
+name = "rust-opengl-test"
 
 [dependencies.gl]
-
 git = "https://github.com/bjz/gl-rs.git"
 
 [dependencies.glfw]
-
 git = "https://github.com/bjz/glfw-rs.git"
 
 [dependencies.freetype]
-
 git = "https://github.com/servo/rust-freetype"
+
+[dependencies.cgmath]
+git = "https://github.com/bjz/cgmath-rs"

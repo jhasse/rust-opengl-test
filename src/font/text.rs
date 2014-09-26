@@ -13,4 +13,10 @@ impl Text {
         }
         Text{ characters: characters }
     }
+
+    pub fn draw(&self) {
+        for ch in self.characters.iter() {
+            ch.draw();
+        }
+    }
 }

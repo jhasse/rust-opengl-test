@@ -6,6 +6,7 @@ extern crate glfw;
 extern crate log;
 extern crate native;
 extern crate freetype;
+extern crate cgmath;
 
 use paths::Paths;
 use texture::Texture;
@@ -21,6 +22,7 @@ mod paths;
 mod shader;
 mod shader_program;
 mod font;
+mod modelview;
 
 struct Triangle {
     vao: GLuint,
@@ -83,6 +85,8 @@ fn start(argc: int, argv: *const *const u8) -> int {
 
 fn main() {
 	let paths = Paths::new();
+
+    let modelview = modelview::Modelview::new();
 
     font::init();
     let face = font::face::Face::new(&paths, "Lato-Lig.otf", 16);
@@ -220,6 +224,8 @@ fn main() {
 
         gl::Clear(gl::COLOR_BUFFER_BIT);
         gl::DrawArrays(gl::TRIANGLES, 0, 3);
+
+        text.draw();
 
         gl::BindRenderbuffer(gl::RENDERBUFFER, 0);
 
