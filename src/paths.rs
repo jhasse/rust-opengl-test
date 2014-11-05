@@ -9,7 +9,7 @@ impl Paths {
 	pub fn new() -> Paths {
 		let mut tmp = match self_exe_path() {
 			Some(p) => p,
-			None => fail!("Can't find exe path")
+			None => panic!("Can't find exe path")
 		};
 		tmp.pop();
 		let prefix = tmp;
