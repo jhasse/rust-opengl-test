@@ -9,18 +9,26 @@ pub struct ShaderProgram {
 
 impl ShaderProgram {
     pub fn new() -> ShaderProgram {
-        let id = gl::CreateProgram();
-        assert!(id != 0);
-        ShaderProgram{ id: id }
+        unsafe {
+            let id = gl::CreateProgram();
+            assert!(id != 0);
+            ShaderProgram{ id: id }
+        }
     }
     pub fn attach(&self, shader: Shader) {
-        gl::AttachShader(self.id, shader.id);
+        unsafe {
+            gl::AttachShader(self.id, shader.id);
+        }
     }
     pub fn link(&self) {
-        gl::LinkProgram(self.id);
+        unsafe {
+            gl::LinkProgram(self.id);
+        }
     }
     pub fn use_program(&self) {
-        gl::UseProgram(self.id);
+        unsafe {
+            gl::UseProgram(self.id);
+        }
     }
     pub fn get_attrib_location(&self, name: &str) -> GLuint {
         name.with_c_str(|s| {

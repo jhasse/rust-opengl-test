@@ -32,7 +32,7 @@ struct Triangle {
 }
 
 fn draw_triangle(paths: &Paths) -> Triangle {
-    static vertices: [GLfloat, ..6] = [
+    static VERTICES: [GLfloat, ..6] = [
         0.0, 0.2,
         0.5, -0.5,
         -0.5, -0.5
@@ -47,8 +47,8 @@ fn draw_triangle(paths: &Paths) -> Triangle {
         gl::GenBuffers(1, &mut vbo);
         gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
         gl::BufferData(gl::ARRAY_BUFFER,
-                       (vertices.len() * std::mem::size_of::<GLfloat>()) as GLsizeiptr,
-                       mem::transmute(&vertices[0]), gl::STATIC_DRAW);
+                       (VERTICES.len() * std::mem::size_of::<GLfloat>()) as GLsizeiptr,
+                       mem::transmute(&VERTICES[0]), gl::STATIC_DRAW);
 
         let vertex_shader = Shader::new(paths, "data/glsl/simple.vert", gl::VERTEX_SHADER);
         let fragment_shader = Shader::new(paths, "data/glsl/simple.frag", gl::FRAGMENT_SHADER);
@@ -200,44 +200,56 @@ fn main() {
             }
         }
 
-        gl::ClearColor(0.5, 0.5, 0.5, 1.0);
-        gl::Clear(gl::COLOR_BUFFER_BIT);
+        unsafe {
+            gl::ClearColor(0.5, 0.5, 0.5, 1.0);
+            gl::Clear(gl::COLOR_BUFFER_BIT);
 
-        gl::BindRenderbuffer(gl::RENDERBUFFER, buffer);
-        gl::BindFramebuffer(gl::FRAMEBUFFER, fbo);
+            gl::BindRenderbuffer(gl::RENDERBUFFER, buffer);
+            gl::BindFramebuffer(gl::FRAMEBUFFER, fbo);
 
-        gl::BindVertexArray(triangle.vao);
-        gl::BindBuffer(gl::ARRAY_BUFFER, triangle.vbo);
+            gl::BindVertexArray(triangle.vao);
+            gl::BindBuffer(gl::ARRAY_BUFFER, triangle.vbo);
+        }
         triangle.program.use_program();
 
         if joystick.is_present() {
-            gl::Uniform2f(triangle.pos,
-                          joystick.get_axes()[0].clone(),
-                          joystick.get_axes()[1].clone());
-            gl::ClearColor(joystick.get_axes()[2].clone(),
-                           joystick.get_axes()[3].clone(),
-                           0.5, 1.0);
+            unsafe {
+                gl::Uniform2f(triangle.pos,
+                              joystick.get_axes()[0].clone(),
+                              joystick.get_axes()[1].clone());
+                gl::ClearColor(joystick.get_axes()[2].clone(),
+                               joystick.get_axes()[3].clone(),
+                               0.5, 1.0);
+            }
         } else {
-            gl::Uniform2f(triangle.pos, 0.5, 0.5);
-            gl::ClearColor(0.0, 0.0, 0.0, 1.0);
+            unsafe {
+                gl::Uniform2f(triangle.pos, 0.5, 0.5);
+                gl::ClearColor(0.0, 0.0, 0.0, 1.0);
+            }
         }
 
-        gl::Clear(gl::COLOR_BUFFER_BIT);
-        gl::DrawArrays(gl::TRIANGLES, 0, 3);
+        unsafe {
+            gl::Clear(gl::COLOR_BUFFER_BIT);
+            gl::DrawArrays(gl::TRIANGLES, 0, 3);
+        }
 
         text.draw();
 
-        gl::BindRenderbuffer(gl::RENDERBUFFER, 0);
+        unsafe {
+            gl::BindRenderbuffer(gl::RENDERBUFFER, 0);
 
-        // draw framebuffer
-        gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
-        gl::BindVertexArray(vao);
+            // draw framebuffer
+            gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
+            gl::BindVertexArray(vao);
+        }
         shader_program.use_program();
 
-        gl::ActiveTexture(gl::TEXTURE0);
-        gl::BindTexture(gl::TEXTURE_2D, texture.id);
+        unsafe {
+            gl::ActiveTexture(gl::TEXTURE0);
+            gl::BindTexture(gl::TEXTURE_2D, texture.id);
 
-        gl::DrawArrays(gl::TRIANGLE_FAN, 0, 4);
+            gl::DrawArrays(gl::TRIANGLE_FAN, 0, 4);
+        }
 
         window.swap_buffers();
     }
