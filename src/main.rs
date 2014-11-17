@@ -88,10 +88,6 @@ fn main() {
 
     let modelview = modelview::Modelview::new();
 
-    font::init();
-    let face = font::face::Face::new(&paths, "Lato-Lig.otf", 16);
-    let text = font::text::Text::new(&face, "Hallo Welt!");
-
 	let width = 800;
 	let height = 600;
 
@@ -108,6 +104,10 @@ fn main() {
     window.make_current();
 
     gl::load_with(|s| window.get_proc_address(s));
+
+    font::init();
+    let face = font::face::Face::new(&paths, "Lato-Lig.otf", 16);
+    let text = font::text::Text::new(&face, "Hallo Welt!");
 
     let mut vao: GLuint = 0;
     let mut buffer: GLuint = 0;
