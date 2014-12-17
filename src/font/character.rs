@@ -19,7 +19,7 @@ impl Character {
             error = FT_Render_Glyph((*face).glyph as *mut FT_GlyphSlotRec, FT_RENDER_MODE_NORMAL);
             assert!(error == 0);
 
-            let bitmap = (*((*face).glyph as *const FT_GlyphSlotRec)).bitmap;
+            let ref bitmap = (*((*face).glyph as *const FT_GlyphSlotRec)).bitmap;
             println!("{} x {}", bitmap.width, bitmap.rows);
 
             Character{ texture: Texture::new(bitmap.width, bitmap.rows) }

@@ -4,7 +4,6 @@ extern crate gl;
 extern crate glfw;
 #[phase(plugin)] extern crate log;
 extern crate log;
-extern crate native;
 extern crate freetype;
 extern crate cgmath;
 
@@ -78,11 +77,6 @@ fn error_callback(_: glfw::Error, description: String, error_count: &Cell<uint>)
     error_count.set(error_count.get() + 1);
 }
 
-#[start]
-fn start(argc: int, argv: *const *const u8) -> int {
-    native::start(argc, argv, main)
-}
-
 fn main() {
 	let paths = Paths::new();
 
@@ -98,7 +92,8 @@ fn main() {
         }
     )).unwrap();
 
-    let (window, _) = glfw.create_window(width, height, "rust-opengl-test", glfw::Windowed)
+    let (window, _) = glfw.create_window(width, height, "rust-opengl-test",
+                                         glfw::WindowMode::Windowed)
         .expect("Failed to create window.");
 
     window.make_current();
@@ -173,7 +168,7 @@ fn main() {
     let mut counter = 0.0;
 
     let mut timer = std::io::timer::Timer::new();
-    let joystick = glfw::Joystick{ id: glfw::Joystick1, glfw: glfw };
+    let joystick = glfw::Joystick{ id: glfw::JoystickId::Joystick1, glfw: glfw };
 
     while !window.should_close() {
         glfw.poll_events();
