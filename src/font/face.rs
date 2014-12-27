@@ -1,25 +1,18 @@
-use font::ft_library;
-use freetype::freetype::{FT_Face, FT_New_Face, FT_Set_Char_Size, FT_F26Dot6};
+extern crate freetype;
+
 use paths::Paths;
 use std::ptr;
 
 pub struct Face {
-    pub ft_face: FT_Face
+    pub ft_face: freetype::Face
 }
 
 impl Face {
-    pub fn new(paths: &Paths, filename: &str, size: uint) -> Face {
-        let mut face: FT_Face = ptr::null_mut();
-        unsafe {
-            let mut error = FT_New_Face(ft_library,
-                                        paths.prefix.join(Path::new(
-                                            format!("data/fonts/{}", filename)
-                                        )).as_str().unwrap().to_c_str().as_ptr() as *mut i8,
-                                        0, &mut face);
-            assert!(error == 0);
-            error = FT_Set_Char_Size(face, 0, size as FT_F26Dot6 * 64, 96, 96);
-            assert!(error == 0);
-        }
+    pub fn new(freetype: freetype::Library, paths: &Paths, filename: &str, size: i32) -> Face {
+        let mut face = freetype.new_face(paths.prefix.join(Path::new(
+                                           format!("data/fonts/{}", filename)
+                                           )).as_str().unwrap(), 0).unwrap();
+        face.set_char_size(0, size * 64, 96, 96);
         return Face{ ft_face: face };
     }
 }

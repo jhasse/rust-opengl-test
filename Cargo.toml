@@ -6,14 +6,17 @@ authors = [ "jhasse@gmail.com" ]
 [[bin]]
 name = "rust-opengl-test"
 
+[dependencies]
+log = "*"
+
 [dependencies.gl]
 git = "https://github.com/bjz/gl-rs.git"
 
 [dependencies.glfw]
 git = "https://github.com/bjz/glfw-rs.git"
 
-[dependencies.freetype]
-git = "https://github.com/servo/rust-freetype"
+[dependencies.freetype-rs]
+git = "https://github.com/PistonDevelopers/freetype-rs"
 
 [dependencies.cgmath]
 git = "https://github.com/bjz/cgmath-rs"

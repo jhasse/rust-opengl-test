@@ -87,7 +87,7 @@ fn main() {
 
     let glfw = glfw::init(Some(
         glfw::Callback {
-            f: error_callback,
+            f: error_callback as fn(glfw::Error, String, &Cell<uint>),
             data: Cell::new(0),
         }
     )).unwrap();
@@ -100,9 +100,9 @@ fn main() {
 
     gl::load_with(|s| window.get_proc_address(s));
 
-    font::init();
-    let face = font::face::Face::new(&paths, "Lato-Lig.otf", 16);
-    let text = font::text::Text::new(&face, "Hallo Welt!");
+    let freetype = freetype::Library::init().unwrap();
+    let mut face = font::face::Face::new(freetype, &paths, "Lato-Lig.otf", 16);
+    let text = font::text::Text::new(&mut face, "Hallo Welt!");
 
     let mut vao: GLuint = 0;
     let mut buffer: GLuint = 0;
