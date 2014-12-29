@@ -8,7 +8,7 @@ pub struct Character {
 
 impl Character {
     pub fn new(face: &mut freetype::Face, ch: char) -> Character {
-        (*face).load_char(ch as u32, freetype::face::RENDER);
+        (*face).load_char(ch as u32, freetype::face::RENDER).unwrap();
 
         let ref bitmap = face.glyph().bitmap();
         println!("{} x {}", bitmap.width(), bitmap.rows());
