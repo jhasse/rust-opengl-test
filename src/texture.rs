@@ -44,4 +44,23 @@ impl Texture {
 
         Texture{ id: texture, vbo: vbo }
     }
+
+    pub fn from_data(width: GLsizei, height: GLsizei, data: &[u8]) -> Texture {
+        let texture = Texture::new(width, height);
+        unsafe {
+            gl::BindTexture(gl::TEXTURE_2D, texture.id);
+            gl::TexSubImage2D(gl::TEXTURE_2D, 0, 0, 0, width, height, gl::RGBA, gl::UNSIGNED_BYTE,
+                              mem::transmute(&data[0]));
+        }
+        texture
+    }
+
+    pub fn draw(&self) {
+        unsafe {
+            gl::ActiveTexture(gl::TEXTURE0);
+            gl::BindTexture(gl::TEXTURE_2D, self.id);
+
+            gl::DrawArrays(gl::TRIANGLE_FAN, 0, 4);
+        }
+    }
 }

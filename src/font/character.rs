@@ -3,7 +3,7 @@ extern crate freetype;
 use texture::Texture;
 
 pub struct Character {
-    texture: Texture
+    texture: Option<Texture>
 }
 
 impl Character {
@@ -11,10 +11,17 @@ impl Character {
         (*face).load_char(ch as u32, freetype::face::RENDER).unwrap();
 
         let ref bitmap = face.glyph().bitmap();
-        println!("{} x {}", bitmap.width(), bitmap.rows());
 
-        Character{ texture: Texture::new(bitmap.width(), bitmap.rows()) }
+        if bitmap.width() == 0 {
+            return Character{ texture: None };
+        }
+        Character{ texture: Some(Texture::from_data(bitmap.width(), bitmap.rows(),
+                                                    bitmap.buffer())) }
     }
     pub fn draw(&self) {
+        match self.texture {
+            Some(ref t) => t.draw(),
+            _ => ()
+        }
     }
 }

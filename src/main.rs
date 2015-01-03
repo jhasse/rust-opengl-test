@@ -228,6 +228,7 @@ fn main() {
             gl::DrawArrays(gl::TRIANGLES, 0, 3);
         }
 
+        shader_program.use_program();
         text.draw();
 
         unsafe {
@@ -237,14 +238,8 @@ fn main() {
             gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
             gl::BindVertexArray(vao);
         }
-        shader_program.use_program();
 
-        unsafe {
-            gl::ActiveTexture(gl::TEXTURE0);
-            gl::BindTexture(gl::TEXTURE_2D, texture.id);
-
-            gl::DrawArrays(gl::TRIANGLE_FAN, 0, 4);
-        }
+        texture.draw();
 
         window.swap_buffers();
     }
