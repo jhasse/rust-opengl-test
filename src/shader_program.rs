@@ -2,6 +2,7 @@ extern crate gl;
 
 use shader::Shader;
 use gl::types::{GLuint, GLint};
+use std::ffi::CString;
 
 pub struct ShaderProgram {
     pub id: GLuint,
@@ -31,17 +32,17 @@ impl ShaderProgram {
         }
     }
     pub fn get_attrib_location(&self, name: &str) -> GLuint {
-        name.with_c_str(|s| {
-            let location = unsafe { gl::GetAttribLocation(self.id, s) };
-            assert!(location >= 0);
-            location as GLuint
-        })
+        let location = unsafe {
+            gl::GetAttribLocation(self.id, CString::from_slice(name.as_bytes()).as_ptr())
+        };
+        assert!(location >= 0);
+        location as GLuint
     }
     pub fn get_uniform_location(&self, name: &str) -> GLint {
-        name.with_c_str(|s| {
-            let location = unsafe { gl::GetUniformLocation(self.id, s) };
-            assert!(location != -1);
-            location
-        })
+        let location = unsafe {
+            gl::GetUniformLocation(self.id, CString::from_slice(name.as_bytes()).as_ptr())
+        };
+        assert!(location != -1);
+        location
     }
 }

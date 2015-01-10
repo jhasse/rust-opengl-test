@@ -1,9 +1,6 @@
-#![feature(phase)]
-
 extern crate gl;
 extern crate glfw;
-#[phase(plugin)] extern crate log;
-extern crate log;
+#[macro_use] extern crate log;
 extern crate freetype;
 extern crate cgmath;
 
@@ -31,7 +28,7 @@ struct Triangle {
 }
 
 fn draw_triangle(paths: &Paths) -> Triangle {
-    static VERTICES: [GLfloat, ..6] = [
+    static VERTICES: [GLfloat; 6] = [
         0.0, 0.2,
         0.5, -0.5,
         -0.5, -0.5
@@ -72,7 +69,7 @@ fn draw_triangle(paths: &Paths) -> Triangle {
     }
 }
 
-fn error_callback(_: glfw::Error, description: String, error_count: &Cell<uint>) {
+fn error_callback(_: glfw::Error, description: String, error_count: &Cell<usize>) {
     error!("GLFW error {}: {}", error_count.get(), description);
     error_count.set(error_count.get() + 1);
 }
@@ -87,7 +84,7 @@ fn main() {
 
     let glfw = glfw::init(Some(
         glfw::Callback {
-            f: error_callback as fn(glfw::Error, String, &Cell<uint>),
+            f: error_callback as fn(glfw::Error, String, &Cell<usize>),
             data: Cell::new(0),
         }
     )).unwrap();
@@ -180,7 +177,7 @@ fn main() {
         if counter >= 1.0 {
             frames *= counter;
             counter -= 1.0;
-            window.set_title(format!("clew - FPS: {}", frames as int).as_slice());
+            window.set_title(format!("clew - FPS: {}", frames as usize).as_slice());
             frames = 0.0;
         }
         loop {
