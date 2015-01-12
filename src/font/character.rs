@@ -1,5 +1,6 @@
 extern crate freetype;
 
+use freetype::ffi::FT_ULong;
 use texture::Texture;
 
 pub struct Character {
@@ -8,7 +9,7 @@ pub struct Character {
 
 impl Character {
     pub fn new(face: &mut freetype::Face, ch: char) -> Character {
-        (*face).load_char(ch as u32, freetype::face::RENDER).unwrap();
+        (*face).load_char(ch as FT_ULong, freetype::face::RENDER).unwrap();
 
         let ref bitmap = face.glyph().bitmap();
 
