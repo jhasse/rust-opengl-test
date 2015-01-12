@@ -1,11 +1,22 @@
-use cgmath::Matrix4;
+use nalgebra::*;
 
 pub struct Modelview {
-    matrix: Matrix4<f64>
+    pub matrix: Mat4<f32>
 }
 
 impl Modelview {
     pub fn new() -> Modelview {
-        Modelview{ matrix: Matrix4::identity() }
+        Modelview{ matrix: new_identity(4) }
+    }
+
+    pub fn translate(&mut self, x: f32, y: f32) {
+        self.matrix = self.matrix * Mat4::new(1f32, 0f32, 0f32, x,
+                                              0f32, 1f32, 0f32, y,
+                                              0f32, 0f32, 1f32, 0f32,
+                                              0f32, 0f32, 0f32, 1f32);
+    }
+
+    pub fn reset(&mut self) {
+        self.matrix = new_identity(4);
     }
 }

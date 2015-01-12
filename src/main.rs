@@ -1,14 +1,16 @@
+ #![allow(unstable)] // FIXME: Should be removed when Rust 1.0 is released
+
 extern crate gl;
 extern crate glfw;
 #[macro_use] extern crate log;
 extern crate freetype;
-extern crate cgmath;
+extern crate nalgebra;
 
 use paths::Paths;
 use texture::Texture;
 use shader::Shader;
 use shader_program::ShaderProgram;
-use gl::types::{GLfloat, GLuint, GLint, GLsizeiptr};
+use gl::types::{GLfloat, GLuint, GLsizeiptr};
 use std::cell::Cell;
 use std::mem;
 use glfw::Context;
@@ -24,7 +26,6 @@ struct Triangle {
     vao: GLuint,
     vbo: GLuint,
     program: ShaderProgram,
-    pos: GLint
 }
 
 fn draw_triangle(paths: &Paths) -> Triangle {
@@ -60,12 +61,9 @@ fn draw_triangle(paths: &Paths) -> Triangle {
         gl::EnableVertexAttribArray(pos_attrib);
 
         let uni_color = shader_program.get_uniform_location("triangleColor");
-        assert!(uni_color != -1);
         gl::Uniform3f(uni_color, 1.0, 1.0, 0.0);
 
-        let uni_pos = shader_program.get_uniform_location("pos");
-        assert!(uni_pos != -1);
-        Triangle{vao: vao, vbo: vbo, program: shader_program, pos: uni_pos }
+        Triangle{vao: vao, vbo: vbo, program: shader_program }
     }
 }
 
@@ -77,7 +75,7 @@ fn error_callback(_: glfw::Error, description: String, error_count: &Cell<usize>
 fn main() {
 	let paths = Paths::new();
 
-    let modelview = modelview::Modelview::new();
+    let mut modelview = modelview::Modelview::new();
 
 	let width = 800;
 	let height = 600;
@@ -167,6 +165,15 @@ fn main() {
     let mut timer = std::io::timer::Timer::new();
     let joystick = glfw::Joystick{ id: glfw::JoystickId::Joystick1, glfw: glfw };
 
+    triangle.program.use_program();
+    let modelview_uniform = triangle.program.get_uniform_location("modelview");
+
+    let projection_uniform = triangle.program.get_uniform_location("projection");
+    let projection_matrix: nalgebra::Mat4<f32> = nalgebra::new_identity(4);
+    unsafe {
+        gl::UniformMatrix4fv(projection_uniform, 1, 0, mem::transmute(projection_matrix.as_array()));
+    }
+
     while !window.should_close() {
         glfw.poll_events();
 
@@ -202,25 +209,26 @@ fn main() {
             gl::BindVertexArray(triangle.vao);
             gl::BindBuffer(gl::ARRAY_BUFFER, triangle.vbo);
         }
+
+        modelview.reset();
         triangle.program.use_program();
 
         if joystick.is_present() {
             unsafe {
-                gl::Uniform2f(triangle.pos,
-                              joystick.get_axes()[0].clone(),
-                              joystick.get_axes()[1].clone());
+                modelview.translate(joystick.get_axes()[0].clone(),
+                                    joystick.get_axes()[1].clone());
                 gl::ClearColor(joystick.get_axes()[2].clone(),
                                joystick.get_axes()[3].clone(),
                                0.5, 1.0);
             }
         } else {
             unsafe {
-                gl::Uniform2f(triangle.pos, 0.5, 0.5);
                 gl::ClearColor(0.0, 0.0, 0.0, 1.0);
             }
         }
 
         unsafe {
+            gl::UniformMatrix4fv(modelview_uniform, 1, 0, mem::transmute(modelview.matrix.as_array()));
             gl::Clear(gl::COLOR_BUFFER_BIT);
             gl::DrawArrays(gl::TRIANGLES, 0, 3);
         }
