@@ -30,7 +30,7 @@ impl Shader {
                         gl::GetShaderInfoLog(shader, buffer.len() as i32, &mut length,
                                              buffer.as_mut_ptr() as *mut i8);
                         println!("Compiler log (length: {}):\n{}", length,
-                                 std::str::from_utf8(&buffer).unwrap());
+                                 std::str::from_c_str(std::mem::transmute(&buffer)));
                     }
                     Shader{ id: shader }
                 }

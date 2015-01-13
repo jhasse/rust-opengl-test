@@ -28,7 +28,7 @@ struct Triangle {
     program: ShaderProgram,
 }
 
-fn draw_triangle(paths: &Paths) -> Triangle {
+fn create_triangle(paths: &Paths) -> Triangle {
     static VERTICES: [GLfloat; 6] = [
         0.0, 0.2,
         0.5, -0.5,
@@ -129,7 +129,6 @@ fn main() {
 
         gl::ClearColor(1.0, 0.0, 0.0, 1.0);
         gl::Clear(gl::COLOR_BUFFER_BIT);
-//        draw_triangle(&paths);
 
         gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
         gl::BindRenderbuffer(gl::RENDERBUFFER, 0);
@@ -156,7 +155,7 @@ fn main() {
         gl::EnableVertexAttribArray(pos_attrib);
     }
 
-    let triangle = draw_triangle(&paths);
+    let triangle = create_triangle(&paths);
 
     let mut last_time = glfw.get_time();
     let mut frames = 0.0;
@@ -171,7 +170,8 @@ fn main() {
     let projection_uniform = triangle.program.get_uniform_location("projection");
     let projection_matrix: nalgebra::Mat4<f32> = nalgebra::new_identity(4);
     unsafe {
-        gl::UniformMatrix4fv(projection_uniform, 1, 0, mem::transmute(projection_matrix.as_array()));
+        gl::UniformMatrix4fv(projection_uniform, 1, 0,
+                             mem::transmute(projection_matrix.as_array()));
     }
 
     while !window.should_close() {
@@ -228,7 +228,8 @@ fn main() {
         }
 
         unsafe {
-            gl::UniformMatrix4fv(modelview_uniform, 1, 0, mem::transmute(modelview.matrix.as_array()));
+            gl::UniformMatrix4fv(modelview_uniform, 1, 0,
+                                 mem::transmute(modelview.matrix.as_array()));
             gl::Clear(gl::COLOR_BUFFER_BIT);
             gl::DrawArrays(gl::TRIANGLES, 0, 3);
         }
