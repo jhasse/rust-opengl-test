@@ -134,7 +134,6 @@ fn main() {
         gl::BindRenderbuffer(gl::RENDERBUFFER, 0);
 
         gl::BindVertexArray(vao);
-        gl::BindBuffer(gl::ARRAY_BUFFER, texture.vbo);
 
         let vertex_shader = Shader::new(&paths, "data/glsl/texture.vert", gl::VERTEX_SHADER);
         let fragment_shader = Shader::new(&paths, "data/glsl/texture.frag", gl::FRAGMENT_SHADER);
@@ -153,6 +152,7 @@ fn main() {
         gl::VertexAttribPointer(pos_attrib, 2, gl::FLOAT, gl::FALSE, 0,
                                 std::ptr::null());
         gl::EnableVertexAttribArray(pos_attrib);
+        gl::BindVertexArray(0);
     }
 
     let triangle = create_triangle(&paths);
