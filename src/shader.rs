@@ -10,6 +10,14 @@ pub struct Shader {
     pub id: GLuint,
 }
 
+impl Drop for Shader {
+    fn drop(&mut self) {
+        unsafe {
+            gl::DeleteShader(self.id);
+        }
+    }
+}
+
 impl Shader {
     pub fn new(paths: &Paths, filename: &str, shader_type: GLenum) -> Shader {
         let mut reader = File::open(&paths.prefix.join(Path::new(filename))).unwrap();
