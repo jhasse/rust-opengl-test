@@ -164,6 +164,9 @@ fn main() {
                                 std::ptr::null());
         gl::EnableVertexAttribArray(pos_attrib);
         gl::BindVertexArray(0);
+
+        gl::Enable(gl::BLEND);
+        gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
     }
 
     let triangle = create_triangle(&shader_programs);

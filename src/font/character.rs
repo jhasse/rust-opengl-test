@@ -17,9 +17,18 @@ impl Character {
         if bitmap.width() == 0 {
             return Character{ texture: None };
         }
+        let mut buffer: Vec<u8> = Vec::new();
+        for y in range(0, bitmap.rows()) {
+            for x in range(0, bitmap.width()) {
+                buffer.push(255);
+                buffer.push(255);
+                buffer.push(255);
+                buffer.push(bitmap.buffer()[(bitmap.width() * y + x) as usize]);
+            }
+        }
         Character {
             texture: Some(Texture::new(shader_programs, bitmap.width(), bitmap.rows(),
-                                       bitmap.buffer()))
+                                       buffer.as_slice()))
         }
     }
     pub fn draw(&self) {
