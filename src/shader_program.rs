@@ -4,9 +4,13 @@ use shader::Shader;
 use paths::Paths;
 use gl::types::{GLuint, GLint};
 use std::ffi::CString;
+use nalgebra::Mat4;
+use std::mem;
 
 pub struct ShaderProgram {
     pub id: GLuint,
+    projection_uniform: GLint,
+    modelview_uniform: GLint,
 }
 
 impl Drop for ShaderProgram {
@@ -31,7 +35,12 @@ impl ShaderProgram {
             gl::AttachShader(id, fragment_shader.id);
             gl::LinkProgram(id);
 
-            ShaderProgram{ id: id }
+            let mut this = ShaderProgram{ id: id, projection_uniform: -1, modelview_uniform: -1 };
+
+            this.use_program();
+            this.projection_uniform = this.get_uniform_location("projection");
+            this.modelview_uniform = this.get_uniform_location("modelview");
+            this
         }
     }
     pub fn use_program(&self) {
@@ -52,5 +61,19 @@ impl ShaderProgram {
         };
         assert!(location != -1);
         location
+    }
+    pub fn set_modelview_matrix(&self, matrix: &Mat4<f32>) {
+        unsafe {
+            gl::UseProgram(self.id);
+            gl::UniformMatrix4fv(self.modelview_uniform, 1, 0,
+                                 mem::transmute(matrix.as_array()));
+        }
+    }
+    pub fn set_projection_matrix(&self, matrix: &Mat4<f32>) {
+        unsafe {
+            gl::UseProgram(self.id);
+            gl::UniformMatrix4fv(self.projection_uniform, 1, 0,
+                                 mem::transmute(matrix.as_array()));
+        }
     }
 }

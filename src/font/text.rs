@@ -1,6 +1,7 @@
 use font::character::Character;
 use font::face::Face;
 use shader_programs::ShaderPrograms;
+use modelview::Modelview;
 
 pub struct Text {
     characters: Vec<Character>
@@ -15,9 +16,9 @@ impl Text {
         Text{ characters: characters }
     }
 
-    pub fn draw(&self) {
+    pub fn draw(&self, modelview: &mut Modelview) {
         for ch in self.characters.iter() {
-            ch.draw();
+            ch.draw(modelview);
         }
     }
 }

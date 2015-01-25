@@ -8,11 +8,12 @@ extern crate nalgebra;
 
 use paths::Paths;
 use shader_programs::ShaderPrograms;
-use shader_program::ShaderProgram;
+use shader::Shader;
 use gl::types::{GLfloat, GLuint, GLsizeiptr, GLint};
 use std::cell::Cell;
 use std::mem;
 use glfw::Context;
+use std::ffi::CString;
 
 mod texture;
 mod paths;
@@ -67,8 +68,6 @@ fn error_callback(_: glfw::Error, description: String, error_count: &Cell<usize>
 fn main() {
 	let paths = Paths::new();
 
-    let mut modelview = modelview::Modelview::new();
-
 	let width = 800;
 	let height = 600;
 
@@ -88,6 +87,7 @@ fn main() {
     gl::load_with(|s| window.get_proc_address(s));
 
     let shader_programs = ShaderPrograms::new(&paths);
+    let mut modelview = modelview::Modelview::new(&shader_programs);
     let freetype = freetype::Library::init().unwrap();
     let mut face = font::face::Face::new(freetype, &paths, "Lato-Lig.otf", 16);
     let text = font::text::Text::new(&shader_programs, &mut face, "Hallo Welt!");
@@ -96,8 +96,17 @@ fn main() {
     let mut buffer: GLuint = 0;
     let mut fbo: GLuint = 0;
     let mut texture: GLuint = 0;
-    let shader_program = ShaderProgram::new(&paths, "data/glsl/texture.vert",
-                                            "data/glsl/texture.frag");
+
+    let vertex_shader = Shader::new(&paths, "data/glsl/window.vert", gl::VERTEX_SHADER);
+    let fragment_shader = Shader::new(&paths, "data/glsl/texture.frag", gl::FRAGMENT_SHADER);
+    let mut shader_program;
+    unsafe {
+        shader_program = gl::CreateProgram();
+        assert!(shader_program != 0);
+        gl::AttachShader(shader_program, vertex_shader.id);
+        gl::AttachShader(shader_program, fragment_shader.id);
+        gl::LinkProgram(shader_program);
+    }
 
     unsafe {
         gl::GenVertexArrays(1, &mut vao);
@@ -145,24 +154,27 @@ fn main() {
 
         assert!(gl::CheckFramebufferStatus(gl::FRAMEBUFFER) == gl::FRAMEBUFFER_COMPLETE);
 
-        gl::ClearColor(1.0, 0.0, 0.0, 1.0);
-        gl::Clear(gl::COLOR_BUFFER_BIT);
-
         gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
         gl::BindRenderbuffer(gl::RENDERBUFFER, 0);
 
         gl::BindVertexArray(vao);
-        shader_program.use_program();
+        gl::UseProgram(shader_program);
 
-        let pos_attrib = shader_program.get_attrib_location("position");
-        gl::VertexAttribPointer(pos_attrib, 2, gl::FLOAT, gl::FALSE, 0,
+
+        let pos_attrib = gl::GetAttribLocation(shader_program,
+                                               CString::from_slice(b"position").as_ptr());
+        assert!(pos_attrib >= 0);
+        gl::VertexAttribPointer(pos_attrib as GLuint, 2, gl::FLOAT, gl::FALSE, 0,
                                 mem::transmute(8 * std::mem::size_of::<GLfloat>()));
-        gl::EnableVertexAttribArray(pos_attrib);
+        gl::EnableVertexAttribArray(pos_attrib as GLuint);
 
-        let pos_attrib = shader_program.get_attrib_location("texcoord");
-        gl::VertexAttribPointer(pos_attrib, 2, gl::FLOAT, gl::FALSE, 0,
+        let tex_attrib = gl::GetAttribLocation(shader_program,
+                                               CString::from_slice(b"texcoord").as_ptr());
+        assert!(tex_attrib >= 0);
+        gl::VertexAttribPointer(tex_attrib as GLuint, 2, gl::FLOAT, gl::FALSE, 0,
                                 std::ptr::null());
-        gl::EnableVertexAttribArray(pos_attrib);
+        gl::EnableVertexAttribArray(tex_attrib as GLuint);
+
         gl::BindVertexArray(0);
 
         gl::Enable(gl::BLEND);
@@ -178,15 +190,8 @@ fn main() {
     let mut timer = std::io::timer::Timer::new();
     let joystick = glfw::Joystick{ id: glfw::JoystickId::Joystick1, glfw: glfw };
 
-    shader_programs.simple.use_program();
-    let modelview_uniform = shader_programs.simple.get_uniform_location("modelview");
-
-    let projection_uniform = shader_programs.simple.get_uniform_location("projection");
     let projection_matrix: nalgebra::Mat4<f32> = nalgebra::new_identity(4);
-    unsafe {
-        gl::UniformMatrix4fv(projection_uniform, 1, 0,
-                             mem::transmute(projection_matrix.as_array()));
-    }
+    shader_programs.set_projection_matrix(&projection_matrix);
 
     while !window.should_close() {
         glfw.poll_events();
@@ -214,11 +219,10 @@ fn main() {
         }
 
         unsafe {
-            gl::ClearColor(0.5, 0.5, 0.5, 1.0);
-            gl::Clear(gl::COLOR_BUFFER_BIT);
-
             gl::BindRenderbuffer(gl::RENDERBUFFER, buffer);
             gl::BindFramebuffer(gl::FRAMEBUFFER, fbo);
+            gl::ClearColor(0.5, 0.5, 0.5, 1.0);
+            gl::Clear(gl::COLOR_BUFFER_BIT);
 
             gl::BindVertexArray(triangle.vao);
             gl::BindBuffer(gl::ARRAY_BUFFER, triangle.vbo);
@@ -240,20 +244,19 @@ fn main() {
                 gl::ClearColor(0.5, 0.5, 0.5, 1.0);
             }
         }
-
+        modelview.set_uniform();
         unsafe {
-            gl::UniformMatrix4fv(modelview_uniform, 1, 0,
-                                 mem::transmute(modelview.matrix.as_array()));
-            gl::Clear(gl::COLOR_BUFFER_BIT);
             gl::DrawArrays(gl::TRIANGLES, 0, 3);
         }
 
-        shader_program.use_program();
-        text.draw();
+        shader_programs.texture.use_program();
+        modelview.translate(-0.5, 0.0);
+        text.draw(&mut modelview);
 
         unsafe {
             gl::BindRenderbuffer(gl::RENDERBUFFER, 0);
             gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
+            gl::UseProgram(shader_program);
             gl::BindVertexArray(vao);
             gl::ActiveTexture(gl::TEXTURE0);
             gl::BindTexture(gl::TEXTURE_2D, texture);
