@@ -1,6 +1,5 @@
 extern crate freetype;
 
-use freetype::ffi::FT_ULong;
 use texture::Texture;
 use shader_programs::ShaderPrograms;
 use modelview::Modelview;
@@ -15,7 +14,7 @@ pub struct Character {
 
 impl Character {
     pub fn new(shader_programs: &ShaderPrograms, face: &mut freetype::Face, ch: char) -> Character {
-        (*face).load_char(ch as FT_ULong, freetype::face::RENDER).unwrap();
+        (*face).load_char(ch as usize, freetype::face::RENDER).unwrap();
 
         let ref glyph = face.glyph();
         let ref bitmap = glyph.bitmap();
@@ -26,8 +25,8 @@ impl Character {
             top: glyph.bitmap_top() as GLfloat * 0.01,
             texture: if bitmap.width() == 0 { None } else {
                 let mut buffer: Vec<u8> = Vec::new();
-                for y in range(0, bitmap.rows()) {
-                    for x in range(0, bitmap.width()) {
+                for y in 0..bitmap.rows() {
+                    for x in 0..bitmap.width() {
                         buffer.push(255);
                         buffer.push(255);
                         buffer.push(255);
@@ -35,7 +34,7 @@ impl Character {
                     }
                 }
                 Some(Texture::new(shader_programs, bitmap.width(), bitmap.rows(),
-                                  buffer.as_slice()))
+                                  &*buffer))
             }
         }
     }

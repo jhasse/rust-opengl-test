@@ -1,4 +1,8 @@
- #![allow(unstable)] // FIXME: Should be removed when Rust 1.0 is released
+#![feature(os)]
+#![feature(path)]
+#![feature(io)]
+#![feature(std_misc)]
+#![feature(libc)]
 
 extern crate gl;
 extern crate glfw;
@@ -187,7 +191,7 @@ fn main() {
     let mut frames = 0.0;
     let mut counter = 0.0;
 
-    let mut timer = std::io::timer::Timer::new();
+    let mut timer = std::old_io::timer::Timer::new();
     let joystick = glfw::Joystick{ id: glfw::JoystickId::Joystick1, glfw: glfw };
 
     let projection_matrix: nalgebra::Mat4<f32> = nalgebra::new_identity(4);
@@ -203,7 +207,7 @@ fn main() {
         if counter >= 1.0 {
             frames *= counter;
             counter -= 1.0;
-            window.set_title(format!("clew - FPS: {}", frames as usize).as_slice());
+            window.set_title(&*format!("clew - FPS: {}", frames as usize));
             frames = 0.0;
         }
         loop {

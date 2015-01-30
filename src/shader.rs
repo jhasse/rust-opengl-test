@@ -1,7 +1,7 @@
 extern crate gl;
 
 use gl::types::{GLuint, GLint, GLenum};
-use std::io::File;
+use std::old_io::File;
 use std;
 use std::ffi::CString;
 use paths::Paths;
