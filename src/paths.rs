@@ -1,5 +1,5 @@
-use std::path::Path;
-use std::os::self_exe_path;
+use std::old_path::Path;
+use std::env;
 
 pub struct Paths {
 	pub prefix: Path
@@ -7,10 +7,11 @@ pub struct Paths {
 
 impl Paths {
 	pub fn new() -> Paths {
-		let mut tmp = match self_exe_path() {
-			Some(p) => p,
-			None => panic!("Can't find exe path")
+		let mut tmp = match env::current_exe() {
+			Ok(p) => p,
+			Err(e) => panic!("Can't find exe path: {}", e)
 		};
+		tmp.pop();
 		tmp.pop();
 		let prefix = tmp;
 		println!("Prefix path: {}", prefix.as_str().unwrap());

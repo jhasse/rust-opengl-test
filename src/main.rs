@@ -1,8 +1,9 @@
-#![feature(os)]
 #![feature(path)]
 #![feature(io)]
 #![feature(std_misc)]
 #![feature(libc)]
+#![feature(core)]
+#![feature(env)]
 
 extern crate gl;
 extern crate glfw;
