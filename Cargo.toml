@@ -14,6 +14,7 @@ git = "https://github.com/bjz/gl-rs.git"
 
 [dependencies.glfw]
 git = "https://github.com/bjz/glfw-rs.git"
+default-features = false
 
 [dependencies.freetype-rs]
 git = "https://github.com/PistonDevelopers/freetype-rs"

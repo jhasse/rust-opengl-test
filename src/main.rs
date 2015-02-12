@@ -2,7 +2,6 @@
 #![feature(io)]
 #![feature(std_misc)]
 #![feature(libc)]
-#![feature(core)]
 #![feature(env)]
 
 extern crate gl;
