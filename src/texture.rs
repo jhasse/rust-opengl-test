@@ -20,13 +20,11 @@ impl Texture {
             assert!(texture != 0);
             gl::BindTexture(gl::TEXTURE_2D, texture);
             gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGBA as GLint, width, height, 0, gl::RGBA,
-                           gl::UNSIGNED_BYTE, std::ptr::null());
+                           gl::UNSIGNED_BYTE, mem::transmute(&data[0]));
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
-            gl::TexSubImage2D(gl::TEXTURE_2D, 0, 0, 0, width, height, gl::RGBA, gl::UNSIGNED_BYTE,
-                              mem::transmute(&data[0]));
         }
         let vertexes: [GLfloat; 16] = [
             0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, // texture coordinates
