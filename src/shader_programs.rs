@@ -1,17 +1,20 @@
 use paths::Paths;
 use shader_program::ShaderProgram;
 use nalgebra::Mat4;
+use modelview::Modelview;
 
 pub struct ShaderPrograms {
     pub simple: ShaderProgram,
-    pub texture: ShaderProgram
+    pub texture: ShaderProgram,
+    pub modelview: Modelview,
 }
 
 impl ShaderPrograms {
     pub fn new(paths: &Paths) -> ShaderPrograms {
         ShaderPrograms {
             simple: ShaderProgram::new(paths, "data/glsl/simple.vert", "data/glsl/simple.frag"),
-            texture: ShaderProgram::new(paths, "data/glsl/texture.vert", "data/glsl/texture.frag")
+            texture: ShaderProgram::new(paths, "data/glsl/texture.vert", "data/glsl/texture.frag"),
+            modelview: Modelview::new(),
         }
     }
 
@@ -23,5 +26,9 @@ impl ShaderPrograms {
     pub fn set_projection_matrix(&self, matrix: &Mat4<f32>) {
         self.simple.set_projection_matrix(matrix);
         self.texture.set_projection_matrix(matrix);
+    }
+
+    pub fn set_uniform(&self, modelview: &Modelview) {
+        self.set_modelview_matrix(&modelview.matrix);
     }
 }

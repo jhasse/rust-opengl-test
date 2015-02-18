@@ -2,7 +2,6 @@ extern crate freetype;
 
 use texture::Texture;
 use shader_programs::ShaderPrograms;
-use modelview::Modelview;
 use gl::types::GLfloat;
 
 pub struct Character {
@@ -38,16 +37,16 @@ impl Character {
             }
         }
     }
-    pub fn draw(&self, modelview: &mut Modelview) {
+    pub fn draw(&self, shader_programs: &mut ShaderPrograms) {
         match self.texture {
             Some(ref t) => {
-                let mut tmp = modelview.clone();
+                let mut tmp = shader_programs.modelview.clone();
                 tmp.translate(self.left, self.top);
-                tmp.set_uniform();
+                shader_programs.set_uniform(&tmp);
                 t.draw();
             },
             _ => ()
         }
-        modelview.translate(self.width, 0.0);
+        shader_programs.modelview.translate(self.width, 0.0);
     }
 }
