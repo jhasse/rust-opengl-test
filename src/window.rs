@@ -13,16 +13,20 @@ use shader_programs::ShaderPrograms;
 use freetype;
 use font::face::Face;
 use font::text::Text;
+use std::sync::mpsc::Receiver;
 
-pub struct Window<'a> {
+pub struct Window {
     glfw: glfw::Glfw,
     glfw_window: glfw::Window,
+    events: Receiver<(f64, glfw::WindowEvent)>,
     shader_programs: ShaderPrograms,
     buffer: GLuint,
     fbo: GLuint,
     vao: GLuint,
     texture: GLuint,
     shader_program: GLuint,
+    width: u32,
+    height: u32,
 }
 
 fn error_callback(_: glfw::Error, description: String, error_count: &Cell<usize>) {
@@ -30,7 +34,7 @@ fn error_callback(_: glfw::Error, description: String, error_count: &Cell<usize>
     error_count.set(error_count.get() + 1);
 }
 
-impl<'a> Window<'a> {
+impl Window {
     pub fn new(paths: &Paths) -> Window {
         let glfw = glfw::init(Some(
             glfw::Callback {
@@ -41,10 +45,11 @@ impl<'a> Window<'a> {
 
         let width = 800;
         let height = 600;
-        let (mut window, _) = glfw.create_window(width, height, "rust-opengl-test",
-                                                 glfw::WindowMode::Windowed)
+        let (mut window, events) = glfw.create_window(width, height, "rust-opengl-test",
+                                                      glfw::WindowMode::Windowed)
             .expect("Failed to create window.");
         window.make_current();
+        window.set_size_polling(true);
 
         gl::load_with(|s| window.get_proc_address(s));
 
@@ -53,8 +58,6 @@ impl<'a> Window<'a> {
         let mut vao: GLuint = 0;
         let mut buffer: GLuint = 0;
         let mut fbo: GLuint = 0;
-        let mut texture: GLuint = 0;
-
         let vertex_shader = Shader::new(&paths, "data/glsl/window.vert", gl::VERTEX_SHADER);
         let fragment_shader = Shader::new(&paths, "data/glsl/texture.frag", gl::FRAGMENT_SHADER);
         let mut shader_program;
@@ -65,6 +68,14 @@ impl<'a> Window<'a> {
             gl::AttachShader(shader_program, fragment_shader.id);
             gl::LinkProgram(shader_program);
         }
+
+        let mut this = Window {
+            glfw: glfw, glfw_window: window, events: events,
+            shader_programs: shader_programs, buffer: buffer, fbo: fbo,
+            vao: vao, texture: 0, shader_program: shader_program, width: width, height: height
+        };
+
+        this.resize();
 
         unsafe {
             gl::GenVertexArrays(1, &mut vao);
@@ -81,16 +92,6 @@ impl<'a> Window<'a> {
             gl::FramebufferRenderbuffer(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0, gl::RENDERBUFFER,
                                         buffer);
 
-
-            gl::GenTextures(1, &mut texture);
-            assert!(texture != 0);
-            gl::BindTexture(gl::TEXTURE_2D, texture);
-            gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGB as GLint, width as GLint, height as GLint, 0,
-                           gl::RGB, gl::UNSIGNED_BYTE, std::ptr::null());
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
             let vertexes: [GLfloat; 16] = [
                 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, // texture coordinates
                 -1.0, -1.0,
@@ -106,9 +107,6 @@ impl<'a> Window<'a> {
             gl::BufferData(gl::ARRAY_BUFFER,
                            (vertexes.len() * std::mem::size_of::<GLfloat>()) as GLsizeiptr,
                            mem::transmute(&vertexes[0]), gl::STATIC_DRAW);
-
-            gl::FramebufferTexture2D(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0, gl::TEXTURE_2D,
-                                     texture, 0);
 
             assert!(gl::CheckFramebufferStatus(gl::FRAMEBUFFER) == gl::FRAMEBUFFER_COMPLETE);
 
@@ -139,10 +137,35 @@ impl<'a> Window<'a> {
             gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
         }
 
-        Window {
-            glfw: glfw, glfw_window: window,
-            shader_programs: shader_programs, buffer: buffer, fbo: fbo,
-            vao: vao, texture: texture, shader_program: shader_program,
+        this
+    }
+
+    fn resize(&mut self) {
+        unsafe {
+            if self.texture != 0 {
+                gl::DeleteTextures(1, &mut self.texture)
+            }
+
+            gl::GenTextures(1, &mut self.texture);
+            gl::BindTexture(gl::TEXTURE_2D, self.texture);
+            gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGB as i32, self.width as i32, self.height as i32,
+                           0, gl::RGB, gl::UNSIGNED_BYTE, std::ptr::null());
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
+
+            gl::BindFramebuffer(gl::FRAMEBUFFER, self.fbo);
+            gl::FramebufferTexture2D(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0, gl::TEXTURE_2D,
+                                     self.texture, 0);
+
+            assert!(gl::CheckFramebufferStatus(gl::FRAMEBUFFER) == gl::FRAMEBUFFER_COMPLETE);
+
+            gl::Viewport(0, 0, self.width as i32, self.height as i32);
+
+            let mut projection: nalgebra::Mat4<f32> = nalgebra::new_identity(4);
+            projection[(0,0)] = self.height as f32 / self.width as f32;
+            self.shader_programs.set_projection_matrix(&projection);
         }
     }
 
@@ -159,11 +182,23 @@ impl<'a> Window<'a> {
         let mut timer = std::old_io::timer::Timer::new();
         let joystick = glfw::Joystick{ id: glfw::JoystickId::Joystick1, glfw: self.glfw };
 
-        let projection_matrix: nalgebra::Mat4<f32> = nalgebra::new_identity(4);
-        self.shader_programs.set_projection_matrix(&projection_matrix);
-
         while !self.glfw_window.should_close() {
             self.glfw.poll_events();
+
+            let mut should_resize = false;
+            for (_, event) in glfw::flush_messages(&self.events) {
+                match event {
+                    glfw::WindowEvent::Size(width, height) => {
+                        self.width = width as u32;
+                        self.height = height as u32;
+                        should_resize = true;
+                    }
+                    _ => {},
+                }
+            }
+            if should_resize {
+                self.resize();
+            }
 
             let old = last_time;
             last_time = self.glfw.get_time();
