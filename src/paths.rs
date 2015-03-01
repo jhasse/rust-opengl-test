@@ -1,8 +1,8 @@
-use std::old_path::Path;
+use std::path::PathBuf;
 use std::env;
 
 pub struct Paths {
-	pub prefix: Path
+	pub prefix: PathBuf
 }
 
 impl Paths {
@@ -14,7 +14,7 @@ impl Paths {
 		tmp.pop();
 		tmp.pop();
 		let prefix = tmp;
-		println!("Prefix path: {}", prefix.as_str().unwrap());
+		println!("Prefix path: {}", prefix.into_os_string().into_string().unwrap());
 		return Paths{ prefix: prefix };
 	}
 }

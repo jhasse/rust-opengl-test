@@ -1,10 +1,13 @@
 extern crate gl;
 
 use gl::types::{GLuint, GLint, GLenum};
-use std::old_io::File;
+use std::fs::File;
 use std;
 use std::ffi::CString;
 use paths::Paths;
+use std::path::AsPath;
+use std::path::Path;
+use std::io::Read;
 
 pub struct Shader {
     pub id: GLuint,
@@ -20,10 +23,10 @@ impl Drop for Shader {
 
 impl Shader {
     pub fn new(paths: &Paths, filename: &str, shader_type: GLenum) -> Shader {
-        let mut reader = File::open(&paths.prefix.join(Path::new(filename))).unwrap();
-        match reader.read_to_end() {
-            Ok(content) => {
-                let src = String::from_utf8(content).unwrap();
+        let mut reader = File::open(&paths.prefix.as_path().join(Path::new(filename))).unwrap();
+        let mut src = String::new();
+        match reader.read_to_string(&mut src) {
+            Ok(()) => {
                 unsafe {
                     let shader = gl::CreateShader(shader_type);
                     assert!(shader != 0);
