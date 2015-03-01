@@ -1,6 +1,5 @@
-use std::cell::Cell;
-use glfw;
-use glfw::Context;
+use glutin;
+use glutin::Event::Resized;
 use gl::types::{GLint, GLuint, GLfloat, GLsizeiptr};
 use paths::Paths;
 use shader::Shader;
@@ -13,12 +12,9 @@ use shader_programs::ShaderPrograms;
 use freetype;
 use font::face::Face;
 use font::text::Text;
-use std::sync::mpsc::Receiver;
 
 pub struct Window {
-    glfw: glfw::Glfw,
-    glfw_window: glfw::Window,
-    events: Receiver<(f64, glfw::WindowEvent)>,
+    glutin_window: glutin::Window,
     shader_programs: ShaderPrograms,
     buffer: GLuint,
     fbo: GLuint,
@@ -29,27 +25,14 @@ pub struct Window {
     height: u32,
 }
 
-fn error_callback(_: glfw::Error, description: String, error_count: &Cell<usize>) {
-    error!("GLFW error {}: {}", error_count.get(), description);
-    error_count.set(error_count.get() + 1);
-}
-
 impl Window {
     pub fn new(paths: &Paths) -> Window {
-        let glfw = glfw::init(Some(
-            glfw::Callback {
-                f: error_callback as fn(glfw::Error, String, &Cell<usize>),
-                data: Cell::new(0),
-            }
-        )).unwrap();
-
-        let width = 800;
-        let height = 600;
-        let (mut window, events) = glfw.create_window(width, height, "rust-opengl-test",
-                                                      glfw::WindowMode::Windowed)
-            .expect("Failed to create window.");
-        window.make_current();
-        window.set_size_polling(true);
+        let window = glutin::Window::new().unwrap();
+        window.set_title("rust-opengl-test");
+        let (width, height) = window.get_inner_size().unwrap();
+        unsafe {
+            window.make_current();
+        }
 
         gl::load_with(|s| window.get_proc_address(s));
 
@@ -70,7 +53,7 @@ impl Window {
         }
 
         let mut this = Window {
-            glfw: glfw, glfw_window: window, events: events,
+            glutin_window: window,
             shader_programs: shader_programs, buffer: buffer, fbo: fbo,
             vao: vao, texture: 0, shader_program: shader_program, width: width, height: height
         };
@@ -118,14 +101,14 @@ impl Window {
 
 
             let pos_attrib = gl::GetAttribLocation(shader_program,
-                                                   CString::from_slice(b"position").as_ptr());
+                                                   CString::new(b"position").unwrap().as_ptr());
             assert!(pos_attrib >= 0);
             gl::VertexAttribPointer(pos_attrib as GLuint, 2, gl::FLOAT, gl::FALSE, 0,
                                     std::mem::transmute(8 * std::mem::size_of::<GLfloat>()));
             gl::EnableVertexAttribArray(pos_attrib as GLuint);
 
             let tex_attrib = gl::GetAttribLocation(shader_program,
-                                                   CString::from_slice(b"texcoord").as_ptr());
+                                                   CString::new(b"texcoord").unwrap().as_ptr());
             assert!(tex_attrib >= 0);
             gl::VertexAttribPointer(tex_attrib as GLuint, 2, gl::FLOAT, gl::FALSE, 0,
                                     std::ptr::null());
@@ -176,20 +159,18 @@ impl Window {
         let text = Text::new(&self.shader_programs, &mut face, "Hallo Welt!");
         let rect = Rectangle::new(&self.shader_programs);
 
-        let mut last_time = self.glfw.get_time();
+/*        let mut last_time = self.glutin.get_time();
         let mut frames = 0.0;
         let mut counter = 0.0;
 
-        let mut timer = std::old_io::timer::Timer::new();
-        let joystick = glfw::Joystick{ id: glfw::JoystickId::Joystick1, glfw: self.glfw };
+        let mut timer = std::old_io::timer::Timer::new();*/
+        //let joystick = glfw::Joystick{ id: glfw::JoystickId::Joystick1, glfw: self.glfw };
 
-        while !self.glfw_window.should_close() {
-            self.glfw.poll_events();
-
+        while !self.glutin_window.should_close() {
             let mut should_resize = false;
-            for (_, event) in glfw::flush_messages(&self.events) {
+            for event in self.glutin_window.poll_events() {
                 match event {
-                    glfw::WindowEvent::Size(width, height) => {
+                    Resized(width, height) => {
                         self.width = width as u32;
                         self.height = height as u32;
                         should_resize = true;
@@ -201,18 +182,18 @@ impl Window {
                 self.resize();
             }
 
-            let old = last_time;
-            last_time = self.glfw.get_time();
+/*            let old = last_time;
+            last_time = self.glutin.get_time();
             counter += last_time - old;
             frames += 1.0;
             if counter >= 1.0 {
                 frames *= counter;
                 counter -= 1.0;
-                self.glfw_window.set_title(&*format!("clew - FPS: {}", frames as usize));
+                self.glutin_window.set_title(&*format!("clew - FPS: {}", frames as usize));
                 frames = 0.0;
             }
             loop {
-                let dif = self.glfw.get_time() - last_time;
+                let dif = self.glutin.get_time() - last_time;
                 if dif >= 0.008 {
                     break;
                 }
@@ -221,7 +202,7 @@ impl Window {
                         t.sleep(std::time::Duration::milliseconds(((0.008 - dif) * 1000.0) as i64)),
                     Err(_) => ()
                 }
-            }
+            }*/
 
             unsafe {
                 gl::BindRenderbuffer(gl::RENDERBUFFER, self.buffer);
@@ -236,7 +217,7 @@ impl Window {
             self.shader_programs.modelview.reset();
             self.shader_programs.simple.use_program();
 
-            if joystick.is_present() {
+            /*if joystick.is_present() {
                 unsafe {
                     self.shader_programs.modelview.translate(joystick.get_axes()[0].clone(),
                                              joystick.get_axes()[1].clone());
@@ -244,7 +225,7 @@ impl Window {
                                    joystick.get_axes()[3].clone(),
                                    0.5, 1.0);
                 }
-            } else {
+            } else*/ {
                 unsafe {
                     gl::ClearColor(0.5, 0.5, 0.5, 1.0);
                 }
@@ -269,7 +250,7 @@ impl Window {
                 gl::DrawArrays(gl::TRIANGLE_FAN, 0, 4);
             }
 
-            self.glfw_window.swap_buffers();
+            self.glutin_window.swap_buffers();
         }
     }
 }

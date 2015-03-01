@@ -30,7 +30,7 @@ impl Shader {
                 unsafe {
                     let shader = gl::CreateShader(shader_type);
                     assert!(shader != 0);
-                    gl::ShaderSource(shader, 1, &CString::from_slice(src.as_bytes()).as_ptr(),
+                    gl::ShaderSource(shader, 1, &CString::new(src.as_bytes()).unwrap().as_ptr(),
                                      std::ptr::null());
                     gl::CompileShader(shader);
                     let mut status: GLint = gl::FALSE as GLint;
@@ -41,9 +41,9 @@ impl Shader {
                         gl::GetShaderInfoLog(shader, buffer.len() as i32, &mut length,
                                              buffer.as_mut_ptr() as *mut i8);
                         println!("Compiler log (length: {}):\n{}", length,
-                                 std::str::from_utf8(std::ffi::c_str_to_bytes(
-                                     std::mem::transmute(&buffer))
-                                 ).unwrap());
+                                 std::str::from_utf8(std::ffi::CStr::from_ptr(
+                                    std::mem::transmute(&buffer)
+                                 ).to_bytes()).unwrap());
                     }
                     Shader{ id: shader }
                 }

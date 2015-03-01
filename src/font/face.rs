@@ -1,8 +1,6 @@
 extern crate freetype;
 
 use paths::Paths;
-use std::path::AsPath;
-use std::path::Path;
 use std;
 
 pub struct Face {
@@ -11,9 +9,9 @@ pub struct Face {
 
 impl Face {
     pub fn new(freetype: freetype::Library, paths: &Paths, filename: &str, size: isize) -> Face {
-        let mut path = paths.prefix;
+        let mut path = paths.prefix.clone();
         path.push("data");
-        path.push("font");
+        path.push("fonts");
         path.push(filename);
         let tmp = std::old_path::posix::Path::new(path.to_str().unwrap());
         let face = freetype.new_face(&tmp, 0).unwrap();

@@ -13,8 +13,8 @@ impl Paths {
 		};
 		tmp.pop();
 		tmp.pop();
-		let prefix = tmp;
+		let prefix = tmp.clone();
 		println!("Prefix path: {}", prefix.into_os_string().into_string().unwrap());
-		return Paths{ prefix: prefix };
+		return Paths{ prefix: tmp };
 	}
 }

@@ -12,9 +12,8 @@ log = "*"
 [dependencies.gl]
 git = "https://github.com/bjz/gl-rs.git"
 
-[dependencies.glfw]
-git = "https://github.com/bjz/glfw-rs.git"
-default-features = false
+[dependencies.glutin]
+git = "https://github.com/tomaka/glutin"
 
 [dependencies.freetype-rs]
 git = "https://github.com/PistonDevelopers/freetype-rs"

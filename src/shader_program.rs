@@ -50,14 +50,14 @@ impl ShaderProgram {
     }
     pub fn get_attrib_location(&self, name: &str) -> GLuint {
         let location = unsafe {
-            gl::GetAttribLocation(self.id, CString::from_slice(name.as_bytes()).as_ptr())
+            gl::GetAttribLocation(self.id, CString::new(name.as_bytes()).unwrap().as_ptr())
         };
         assert!(location >= 0);
         location as GLuint
     }
     pub fn get_uniform_location(&self, name: &str) -> GLint {
         let location = unsafe {
-            gl::GetUniformLocation(self.id, CString::from_slice(name.as_bytes()).as_ptr())
+            gl::GetUniformLocation(self.id, CString::new(name.as_bytes()).unwrap().as_ptr())
         };
         assert!(location != -1);
         location

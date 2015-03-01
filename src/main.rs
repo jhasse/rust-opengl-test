@@ -1,7 +1,7 @@
-#![feature(path, io, std_misc, libc, env)]
+#![feature(path, io, std_misc, libc, fs, old_path)]
 
 extern crate gl;
-extern crate glfw;
+extern crate glutin;
 #[macro_use] extern crate log;
 extern crate freetype;
 extern crate nalgebra;
