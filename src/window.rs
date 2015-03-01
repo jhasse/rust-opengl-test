@@ -7,7 +7,6 @@ use shader::Shader;
 use rectangle::Rectangle;
 use gl;
 use std;
-use std::mem;
 use std::ffi::CString;
 use nalgebra;
 use shader_programs::ShaderPrograms;
@@ -107,7 +106,7 @@ impl Window {
             gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
             gl::BufferData(gl::ARRAY_BUFFER,
                            (vertexes.len() * std::mem::size_of::<GLfloat>()) as GLsizeiptr,
-                           mem::transmute(&vertexes[0]), gl::STATIC_DRAW);
+                           std::mem::transmute(&vertexes[0]), gl::STATIC_DRAW);
 
             assert!(gl::CheckFramebufferStatus(gl::FRAMEBUFFER) == gl::FRAMEBUFFER_COMPLETE);
 
@@ -122,7 +121,7 @@ impl Window {
                                                    CString::from_slice(b"position").as_ptr());
             assert!(pos_attrib >= 0);
             gl::VertexAttribPointer(pos_attrib as GLuint, 2, gl::FLOAT, gl::FALSE, 0,
-                                    mem::transmute(8 * std::mem::size_of::<GLfloat>()));
+                                    std::mem::transmute(8 * std::mem::size_of::<GLfloat>()));
             gl::EnableVertexAttribArray(pos_attrib as GLuint);
 
             let tex_attrib = gl::GetAttribLocation(shader_program,
@@ -297,7 +296,7 @@ fn create_triangle(shader_programs: &ShaderPrograms) -> Triangle {
         gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
         gl::BufferData(gl::ARRAY_BUFFER,
                        (VERTICES.len() * std::mem::size_of::<GLfloat>()) as GLsizeiptr,
-                       mem::transmute(&VERTICES[0]), gl::STATIC_DRAW);
+                       std::mem::transmute(&VERTICES[0]), gl::STATIC_DRAW);
 
         shader_programs.simple.use_program();
 
