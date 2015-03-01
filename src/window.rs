@@ -4,6 +4,7 @@ use glfw::Context;
 use gl::types::{GLint, GLuint, GLfloat, GLsizeiptr};
 use paths::Paths;
 use shader::Shader;
+use rectangle::Rectangle;
 use gl;
 use std;
 use std::mem;
@@ -174,6 +175,7 @@ impl Window {
         let freetype = freetype::Library::init().unwrap();
         let mut face = Face::new(freetype, &paths, "Lato-Lig.otf", 16);
         let text = Text::new(&self.shader_programs, &mut face, "Hallo Welt!");
+        let rect = Rectangle::new(&self.shader_programs);
 
         let mut last_time = self.glfw.get_time();
         let mut frames = 0.0;
@@ -228,8 +230,8 @@ impl Window {
                 gl::ClearColor(0.5, 0.5, 0.5, 1.0);
                 gl::Clear(gl::COLOR_BUFFER_BIT);
 
+                gl::BindBuffer(gl::ARRAY_BUFFER, 123);
                 gl::BindVertexArray(triangle.vao);
-                gl::BindBuffer(gl::ARRAY_BUFFER, triangle.vbo);
             }
 
             self.shader_programs.modelview.reset();
@@ -256,6 +258,7 @@ impl Window {
             self.shader_programs.texture.use_program();
             self.shader_programs.modelview.translate(-0.5, 0.0);
             text.draw(&mut self.shader_programs);
+            rect.draw(&mut self.shader_programs);
 
             unsafe {
                 gl::BindRenderbuffer(gl::RENDERBUFFER, 0);
@@ -275,7 +278,6 @@ impl Window {
 
 struct Triangle {
     vao: GLuint,
-    vbo: GLuint,
 }
 
 fn create_triangle(shader_programs: &ShaderPrograms) -> Triangle {
@@ -306,6 +308,6 @@ fn create_triangle(shader_programs: &ShaderPrograms) -> Triangle {
         let uni_color = shader_programs.simple.get_uniform_location("triangleColor");
         gl::Uniform3f(uni_color, 1.0, 1.0, 0.0);
 
-        Triangle{vao: vao, vbo: vbo }
+        Triangle{vao: vao}
     }
 }

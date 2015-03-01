@@ -17,6 +17,7 @@ mod shader_programs;
 mod font;
 mod modelview;
 mod window;
+mod rectangle;
 
 fn main() {
 	let paths = Paths::new();
