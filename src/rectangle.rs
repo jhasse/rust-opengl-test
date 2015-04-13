@@ -16,7 +16,7 @@ static VERTICES: [GLfloat; 8] = [
 
 impl Rectangle {
     pub fn new(shader_programs: &ShaderPrograms) -> Rectangle {
-        let mut vao: GLuint = -1;
+        let mut vao: GLuint = 0;
         unsafe {
             gl::GenVertexArrays(1, &mut vao);
             gl::BindVertexArray(vao);

@@ -5,7 +5,6 @@ use std::fs::File;
 use std;
 use std::ffi::CString;
 use paths::Paths;
-use std::path::AsPath;
 use std::path::Path;
 use std::io::Read;
 
@@ -26,7 +25,7 @@ impl Shader {
         let mut reader = File::open(&paths.prefix.as_path().join(Path::new(filename))).unwrap();
         let mut src = String::new();
         match reader.read_to_string(&mut src) {
-            Ok(()) => {
+            Ok(_) => {
                 unsafe {
                     let shader = gl::CreateShader(shader_type);
                     assert!(shader != 0);

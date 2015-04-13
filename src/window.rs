@@ -101,14 +101,14 @@ impl Window {
 
 
             let pos_attrib = gl::GetAttribLocation(shader_program,
-                                                   CString::new(b"position").unwrap().as_ptr());
+                                                   CString::new("position").unwrap().as_ptr());
             assert!(pos_attrib >= 0);
             gl::VertexAttribPointer(pos_attrib as GLuint, 2, gl::FLOAT, gl::FALSE, 0,
                                     std::mem::transmute(8 * std::mem::size_of::<GLfloat>()));
             gl::EnableVertexAttribArray(pos_attrib as GLuint);
 
             let tex_attrib = gl::GetAttribLocation(shader_program,
-                                                   CString::new(b"texcoord").unwrap().as_ptr());
+                                                   CString::new("texcoord").unwrap().as_ptr());
             assert!(tex_attrib >= 0);
             gl::VertexAttribPointer(tex_attrib as GLuint, 2, gl::FLOAT, gl::FALSE, 0,
                                     std::ptr::null());
@@ -268,7 +268,7 @@ fn create_triangle(shader_programs: &ShaderPrograms) -> Triangle {
     ];
 
     unsafe {
-        let mut vao: GLuint = -1;
+        let mut vao: GLuint = 0;
         gl::GenVertexArrays(1, &mut vao);
         gl::BindVertexArray(vao);
 

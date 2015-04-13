@@ -1,4 +1,4 @@
-#![feature(path, io, std_misc, libc, fs, old_path)]
+#![feature(libc, start)]
 
 extern crate gl;
 extern crate glutin;
