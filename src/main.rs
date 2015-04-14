@@ -1,5 +1,3 @@
-#![feature(libc, start)]
-
 extern crate gl;
 extern crate glutin;
 #[macro_use] extern crate log;

@@ -1,4 +1,3 @@
-extern crate libc;
 extern crate freetype;
 
 pub mod face;
