@@ -7,7 +7,7 @@ pub struct Face<'a> {
 }
 
 impl<'a> Face<'a> {
-    pub fn new(freetype: freetype::Library, paths: &Paths,
+    pub fn new(freetype: &freetype::Library, paths: &Paths,
                filename: &str, size: isize) -> Face<'a> {
         let mut path = paths.prefix.clone();
         path.push("data");

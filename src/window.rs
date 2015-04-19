@@ -11,7 +11,8 @@ use nalgebra;
 use shader_programs::ShaderPrograms;
 use freetype;
 use font::face::Face;
-use font::text::Text;
+use engine::game_object::GameObject;
+use menu::Menu;
 
 pub struct Window {
     glutin_window: glutin::Window,
@@ -23,6 +24,7 @@ pub struct Window {
     shader_program: GLuint,
     width: u32,
     height: u32,
+    work: Box<GameObject>,
 }
 
 impl Window {
@@ -52,10 +54,15 @@ impl Window {
             gl::LinkProgram(shader_program);
         }
 
+        let freetype = freetype::Library::init().unwrap();
+        let mut face = Face::new(&freetype, &paths, "Lato-Lig.otf", 48);
+        let work = Box::new(Menu::new(&shader_programs, &mut face));
+
         let mut this = Window {
             glutin_window: window,
             shader_programs: shader_programs, buffer: buffer, fbo: fbo,
-            vao: vao, texture: 0, shader_program: shader_program, width: width, height: height
+            vao: vao, texture: 0, shader_program: shader_program, width: width, height: height,
+            work: work,
         };
 
         this.resize();
@@ -152,11 +159,8 @@ impl Window {
         }
     }
 
-    pub fn main_loop(&mut self, paths: &Paths) {
+    pub fn main_loop(&mut self) {
         let triangle = create_triangle(&self.shader_programs);
-        let freetype = freetype::Library::init().unwrap();
-        let mut face = Face::new(freetype, &paths, "Lato-Lig.otf", 16);
-        let text = Text::new(&self.shader_programs, &mut face, "Hallo Welt!");
         let rect = Rectangle::new(&self.shader_programs);
 
 /*        let mut last_time = self.glutin.get_time();
@@ -166,7 +170,7 @@ impl Window {
         let mut timer = std::old_io::timer::Timer::new();*/
         //let joystick = glfw::Joystick{ id: glfw::JoystickId::Joystick1, glfw: self.glfw };
 
-        while !self.glutin_window.should_close() {
+        while !self.glutin_window.is_closed() {
             let mut should_resize = false;
             for event in self.glutin_window.poll_events() {
                 match event {
@@ -237,8 +241,8 @@ impl Window {
 
             self.shader_programs.texture.use_program();
             self.shader_programs.modelview.translate(-0.5, 0.0);
-            text.draw(&mut self.shader_programs);
             rect.draw(&mut self.shader_programs);
+            self.work.draw(&mut self.shader_programs);
 
             unsafe {
                 gl::BindRenderbuffer(gl::RENDERBUFFER, 0);

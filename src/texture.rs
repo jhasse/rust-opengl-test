@@ -28,10 +28,10 @@ impl Texture {
         }
         let vertexes: [GLfloat; 16] = [
             0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, // texture coordinates
-            0.0, -height as GLfloat * 0.01,
+            0.0, -height as GLfloat * 0.001,
             0.0, 0.0,
-            width as GLfloat  * 0.01, 0.0,
-            width as GLfloat  * 0.01, -height as GLfloat  * 0.01
+            width as GLfloat  * 0.001, 0.0,
+            width as GLfloat  * 0.001, -height as GLfloat  * 0.001
         ];
 
         let mut vao: GLuint = 0;

@@ -13,12 +13,14 @@ mod shader;
 mod shader_program;
 mod shader_programs;
 mod font;
+mod engine;
+mod menu;
 mod modelview;
 mod window;
 mod rectangle;
 
 fn main() {
-	let paths = Paths::new();
+    let paths = Paths::new();
     let mut window = Window::new(&paths);
-    window.main_loop(&paths);
+    window.main_loop();
 }

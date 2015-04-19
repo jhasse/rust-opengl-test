@@ -12,16 +12,16 @@ pub struct Character {
 }
 
 impl Character {
-    pub fn new(shader_programs: &ShaderPrograms, face: &mut freetype::Face, ch: char) -> Character {
+    pub fn new(shader_programs: &ShaderPrograms, face: &freetype::Face, ch: char) -> Character {
         (*face).load_char(ch as usize, freetype::face::RENDER).unwrap();
 
         let ref glyph = face.glyph();
         let ref bitmap = glyph.bitmap();
 
         Character {
-            width: (glyph.advance().x >> 6) as GLfloat * 0.01,
-            left: glyph.bitmap_left() as GLfloat * 0.01,
-            top: glyph.bitmap_top() as GLfloat * 0.01,
+            width: (glyph.advance().x >> 6) as GLfloat * 0.001,
+            left: glyph.bitmap_left() as GLfloat * 0.001,
+            top: glyph.bitmap_top() as GLfloat * 0.001,
             texture: if bitmap.width() == 0 { None } else {
                 let mut buffer: Vec<u8> = Vec::new();
                 for y in 0..bitmap.rows() {
