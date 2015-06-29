@@ -29,9 +29,12 @@ pub struct Window {
 
 impl Window {
     pub fn new(paths: &Paths) -> Window {
-        let window = glutin::Window::new().unwrap();
-        window.set_title("rust-opengl-test");
-        let (width, height) = window.get_inner_size().unwrap();
+        let width = 1280;
+        let height = 720;
+        let window = glutin::WindowBuilder::new()
+            .with_dimensions(width, height)
+            .with_title("rust-opengl-test".to_string())
+            .build().unwrap();
         unsafe {
             window.make_current();
         }
