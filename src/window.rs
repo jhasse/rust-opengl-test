@@ -1,4 +1,5 @@
 use glutin;
+use time;
 use glutin::Event::Resized;
 use gl::types::{GLint, GLuint, GLfloat, GLsizeiptr};
 use paths::Paths;
@@ -6,6 +7,7 @@ use shader::Shader;
 use rectangle::Rectangle;
 use gl;
 use std;
+use std::thread::sleep_ms;
 use std::ffi::CString;
 use nalgebra;
 use shader_programs::ShaderPrograms;
@@ -166,11 +168,10 @@ impl Window {
         let triangle = create_triangle(&self.shader_programs);
         let rect = Rectangle::new(&self.shader_programs);
 
-/*        let mut last_time = self.glutin.get_time();
+        let mut last_time = time::precise_time_s();
         let mut frames = 0.0;
         let mut counter = 0.0;
 
-        let mut timer = std::old_io::timer::Timer::new();*/
         //let joystick = glfw::Joystick{ id: glfw::JoystickId::Joystick1, glfw: self.glfw };
 
         while !self.glutin_window.is_closed() {
@@ -189,8 +190,8 @@ impl Window {
                 self.resize();
             }
 
-/*            let old = last_time;
-            last_time = self.glutin.get_time();
+            let old = last_time;
+            last_time = time::precise_time_s();
             counter += last_time - old;
             frames += 1.0;
             if counter >= 1.0 {
@@ -200,16 +201,12 @@ impl Window {
                 frames = 0.0;
             }
             loop {
-                let dif = self.glutin.get_time() - last_time;
+                let dif = time::precise_time_s() - last_time;
                 if dif >= 0.008 {
                     break;
                 }
-                match timer {
-                    Ok(ref mut t) =>
-                        t.sleep(std::time::Duration::milliseconds(((0.008 - dif) * 1000.0) as i64)),
-                    Err(_) => ()
-                }
-            }*/
+                sleep_ms((1000. * (0.008 - dif)) as u32);
+            }
 
             unsafe {
                 gl::BindRenderbuffer(gl::RENDERBUFFER, self.buffer);

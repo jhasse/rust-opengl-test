@@ -3,6 +3,7 @@ extern crate glutin;
 #[macro_use] extern crate log;
 extern crate freetype;
 extern crate nalgebra;
+extern crate time;
 
 use paths::Paths;
 use window::Window;
