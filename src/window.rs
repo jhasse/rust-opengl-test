@@ -37,9 +37,7 @@ impl Window {
             .with_dimensions(width, height)
             .with_title("rust-opengl-test".to_string())
             .build().unwrap();
-        unsafe {
-            window.make_current();
-        }
+        let _ = unsafe { window.make_current() };
 
         gl::load_with(|s| window.get_proc_address(s));
 
@@ -50,7 +48,7 @@ impl Window {
         let mut fbo: GLuint = 0;
         let vertex_shader = Shader::new(&paths, "data/glsl/window.vert", gl::VERTEX_SHADER);
         let fragment_shader = Shader::new(&paths, "data/glsl/texture.frag", gl::FRAGMENT_SHADER);
-        let mut shader_program;
+        let shader_program;
         unsafe {
             shader_program = gl::CreateProgram();
             assert!(shader_program != 0);
@@ -174,7 +172,7 @@ impl Window {
 
         //let joystick = glfw::Joystick{ id: glfw::JoystickId::Joystick1, glfw: self.glfw };
 
-        while !self.glutin_window.is_closed() {
+        'main: loop {
             let mut should_resize = false;
             for event in self.glutin_window.poll_events() {
                 match event {
@@ -182,6 +180,9 @@ impl Window {
                         self.width = width as u32;
                         self.height = height as u32;
                         should_resize = true;
+                    }
+                    glutin::Event::Closed => {
+                        break 'main;
                     }
                     _ => {},
                 }
@@ -254,7 +255,7 @@ impl Window {
                 gl::DrawArrays(gl::TRIANGLE_FAN, 0, 4);
             }
 
-            self.glutin_window.swap_buffers();
+            let _ = self.glutin_window.swap_buffers();
         }
     }
 }
