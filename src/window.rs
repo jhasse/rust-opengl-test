@@ -15,6 +15,7 @@ use freetype;
 use font::face::Face;
 use engine::game_object::GameObject;
 use menu::Menu;
+use libc;
 
 pub struct Window {
     glutin_window: glutin::Window,
@@ -39,7 +40,7 @@ impl Window {
             .build().unwrap();
         let _ = unsafe { window.make_current() };
 
-        gl::load_with(|s| window.get_proc_address(s));
+        gl::load_with(|s| window.get_proc_address(s) as *const libc::c_void);
 
         let shader_programs = ShaderPrograms::new(&paths);
 
