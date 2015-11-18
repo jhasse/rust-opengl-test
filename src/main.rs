@@ -4,7 +4,6 @@ extern crate glutin;
 extern crate freetype;
 extern crate nalgebra;
 extern crate time;
-extern crate libc;
 
 use paths::Paths;
 use window::Window;

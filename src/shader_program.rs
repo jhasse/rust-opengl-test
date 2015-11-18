@@ -66,14 +66,14 @@ impl ShaderProgram {
         unsafe {
             gl::UseProgram(self.id);
             gl::UniformMatrix4fv(self.modelview_uniform, 1, 0,
-                                 mem::transmute(matrix.as_array()));
+                                 mem::transmute(matrix.as_ref()));
         }
     }
     pub fn set_projection_matrix(&self, matrix: &Mat4<f32>) {
         unsafe {
             gl::UseProgram(self.id);
             gl::UniformMatrix4fv(self.projection_uniform, 1, 0,
-                                 mem::transmute(matrix.as_array()));
+                                 mem::transmute(matrix.as_ref()));
         }
     }
 }

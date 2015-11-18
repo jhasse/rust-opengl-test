@@ -9,7 +9,6 @@ name = "rust-opengl-test"
 [dependencies]
 log = "*"
 time = "*"
-libc = "*"
 
 [dependencies.gl]
 git = "https://github.com/bjz/gl-rs.git"
