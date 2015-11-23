@@ -34,9 +34,10 @@ impl Window {
         let width = 1280;
         let height = 720;
         let window = glutin::WindowBuilder::new()
-            .with_dimensions(width, height)
-            .with_title("rust-opengl-test".to_string())
-            .build().unwrap();
+                         .with_dimensions(width, height)
+                         .with_title("rust-opengl-test".to_string())
+                         .build()
+                         .unwrap();
         let _ = unsafe { window.make_current() };
 
         gl::load_with(|s| window.get_proc_address(s) as *const ());
@@ -63,8 +64,14 @@ impl Window {
 
         let mut this = Window {
             glutin_window: window,
-            shader_programs: shader_programs, buffer: buffer, fbo: fbo,
-            vao: vao, texture: 0, shader_program: shader_program, width: width, height: height,
+            shader_programs: shader_programs,
+            buffer: buffer,
+            fbo: fbo,
+            vao: vao,
+            texture: 0,
+            shader_program: shader_program,
+            width: width,
+            height: height,
             work: work,
         };
 
@@ -82,16 +89,14 @@ impl Window {
             // framebuffer
             gl::GenFramebuffers(1, &mut fbo);
             gl::BindFramebuffer(gl::FRAMEBUFFER, fbo);
-            gl::FramebufferRenderbuffer(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0, gl::RENDERBUFFER,
+            gl::FramebufferRenderbuffer(gl::FRAMEBUFFER,
+                                        gl::COLOR_ATTACHMENT0,
+                                        gl::RENDERBUFFER,
                                         buffer);
 
-            let vertexes: [GLfloat; 16] = [
-                0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, // texture coordinates
-                -1.0, -1.0,
-                -1.0, 1.0,
-                1.0, 1.0,
-                1.0, -1.0
-            ];
+            let vertexes: [GLfloat; 16] = [0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0,
+                                           0.0 /* texture coordinates */, -1.0, -1.0, -1.0,
+                                           1.0, 1.0, 1.0, 1.0, -1.0];
 
             let mut vbo: GLuint = 0;
             gl::GenBuffers(1, &mut vbo);
@@ -99,7 +104,8 @@ impl Window {
             gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
             gl::BufferData(gl::ARRAY_BUFFER,
                            (vertexes.len() * std::mem::size_of::<GLfloat>()) as GLsizeiptr,
-                           std::mem::transmute(&vertexes[0]), gl::STATIC_DRAW);
+                           std::mem::transmute(&vertexes[0]),
+                           gl::STATIC_DRAW);
 
             assert!(gl::CheckFramebufferStatus(gl::FRAMEBUFFER) == gl::FRAMEBUFFER_COMPLETE);
 
@@ -113,14 +119,22 @@ impl Window {
             let pos_attrib = gl::GetAttribLocation(shader_program,
                                                    CString::new("position").unwrap().as_ptr());
             assert!(pos_attrib >= 0);
-            gl::VertexAttribPointer(pos_attrib as GLuint, 2, gl::FLOAT, gl::FALSE, 0,
+            gl::VertexAttribPointer(pos_attrib as GLuint,
+                                    2,
+                                    gl::FLOAT,
+                                    gl::FALSE,
+                                    0,
                                     std::mem::transmute(8 * std::mem::size_of::<GLfloat>()));
             gl::EnableVertexAttribArray(pos_attrib as GLuint);
 
             let tex_attrib = gl::GetAttribLocation(shader_program,
                                                    CString::new("texcoord").unwrap().as_ptr());
             assert!(tex_attrib >= 0);
-            gl::VertexAttribPointer(tex_attrib as GLuint, 2, gl::FLOAT, gl::FALSE, 0,
+            gl::VertexAttribPointer(tex_attrib as GLuint,
+                                    2,
+                                    gl::FLOAT,
+                                    gl::FALSE,
+                                    0,
                                     std::ptr::null());
             gl::EnableVertexAttribArray(tex_attrib as GLuint);
 
@@ -141,23 +155,33 @@ impl Window {
 
             gl::GenTextures(1, &mut self.texture);
             gl::BindTexture(gl::TEXTURE_2D, self.texture);
-            gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGB as i32, self.width as i32, self.height as i32,
-                           0, gl::RGB, gl::UNSIGNED_BYTE, std::ptr::null());
+            gl::TexImage2D(gl::TEXTURE_2D,
+                           0,
+                           gl::RGB as i32,
+                           self.width as i32,
+                           self.height as i32,
+                           0,
+                           gl::RGB,
+                           gl::UNSIGNED_BYTE,
+                           std::ptr::null());
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
 
             gl::BindFramebuffer(gl::FRAMEBUFFER, self.fbo);
-            gl::FramebufferTexture2D(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0, gl::TEXTURE_2D,
-                                     self.texture, 0);
+            gl::FramebufferTexture2D(gl::FRAMEBUFFER,
+                                     gl::COLOR_ATTACHMENT0,
+                                     gl::TEXTURE_2D,
+                                     self.texture,
+                                     0);
 
             assert!(gl::CheckFramebufferStatus(gl::FRAMEBUFFER) == gl::FRAMEBUFFER_COMPLETE);
 
             gl::Viewport(0, 0, self.width as i32, self.height as i32);
 
             let mut projection: nalgebra::Mat4<f32> = nalgebra::new_identity(4);
-            projection[(0,0)] = self.height as f32 / self.width as f32;
+            projection[(0, 0)] = self.height as f32 / self.width as f32;
             self.shader_programs.set_projection_matrix(&projection);
         }
     }
@@ -170,7 +194,7 @@ impl Window {
         let mut frames = 0.0;
         let mut counter = 0.0;
 
-        //let joystick = glfw::Joystick{ id: glfw::JoystickId::Joystick1, glfw: self.glfw };
+        // let joystick = glfw::Joystick{ id: glfw::JoystickId::Joystick1, glfw: self.glfw };
 
         'main: loop {
             let mut should_resize = false;
@@ -184,7 +208,7 @@ impl Window {
                     glutin::Event::Closed => {
                         break 'main;
                     }
-                    _ => {},
+                    _ => {}
                 }
             }
             if should_resize {
@@ -222,15 +246,16 @@ impl Window {
             self.shader_programs.modelview.reset();
             self.shader_programs.simple.use_program();
 
-            /*if joystick.is_present() {
-                unsafe {
-                    self.shader_programs.modelview.translate(joystick.get_axes()[0].clone(),
-                                             joystick.get_axes()[1].clone());
-                    gl::ClearColor(joystick.get_axes()[2].clone(),
-                                   joystick.get_axes()[3].clone(),
-                                   0.5, 1.0);
-                }
-            } else*/ {
+            // if joystick.is_present() {
+            // unsafe {
+            // self.shader_programs.modelview.translate(joystick.get_axes()[0].clone(),
+            // joystick.get_axes()[1].clone());
+            // gl::ClearColor(joystick.get_axes()[2].clone(),
+            // joystick.get_axes()[3].clone(),
+            // 0.5, 1.0);
+            // }
+            // } else
+            {
                 unsafe {
                     gl::ClearColor(0.5, 0.5, 0.5, 1.0);
                 }
@@ -266,11 +291,7 @@ struct Triangle {
 }
 
 fn create_triangle(shader_programs: &ShaderPrograms) -> Triangle {
-    static VERTICES: [GLfloat; 6] = [
-        0.0, 0.2,
-        0.5, -0.5,
-        -0.5, -0.5
-    ];
+    static VERTICES: [GLfloat; 6] = [0.0, 0.2, 0.5, -0.5, -0.5, -0.5];
 
     unsafe {
         let mut vao: GLuint = 0;
@@ -282,7 +303,8 @@ fn create_triangle(shader_programs: &ShaderPrograms) -> Triangle {
         gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
         gl::BufferData(gl::ARRAY_BUFFER,
                        (VERTICES.len() * std::mem::size_of::<GLfloat>()) as GLsizeiptr,
-                       std::mem::transmute(&VERTICES[0]), gl::STATIC_DRAW);
+                       std::mem::transmute(&VERTICES[0]),
+                       gl::STATIC_DRAW);
 
         shader_programs.simple.use_program();
 
@@ -293,6 +315,6 @@ fn create_triangle(shader_programs: &ShaderPrograms) -> Triangle {
         let uni_color = shader_programs.simple.get_uniform_location("triangleColor");
         gl::Uniform3f(uni_color, 1.0, 1.0, 0.0);
 
-        Triangle{vao: vao}
+        Triangle { vao: vao }
     }
 }

@@ -29,7 +29,9 @@ impl Shader {
                 unsafe {
                     let shader = gl::CreateShader(shader_type);
                     assert!(shader != 0);
-                    gl::ShaderSource(shader, 1, &CString::new(src.as_bytes()).unwrap().as_ptr(),
+                    gl::ShaderSource(shader,
+                                     1,
+                                     &CString::new(src.as_bytes()).unwrap().as_ptr(),
                                      std::ptr::null());
                     gl::CompileShader(shader);
                     let mut status: GLint = gl::FALSE as GLint;
@@ -37,19 +39,21 @@ impl Shader {
                     if status != gl::TRUE as GLint {
                         let mut buffer = [0u8; 512];
                         let mut length: i32 = 0;
-                        gl::GetShaderInfoLog(shader, buffer.len() as i32, &mut length,
+                        gl::GetShaderInfoLog(shader,
+                                             buffer.len() as i32,
+                                             &mut length,
                                              buffer.as_mut_ptr() as *mut i8);
                         println!("Compiler log (length: {}):\n{}", length,
                                  std::str::from_utf8(std::ffi::CStr::from_ptr(
                                     std::mem::transmute(&buffer)
                                  ).to_bytes()).unwrap());
                     }
-                    Shader{ id: shader }
+                    Shader { id: shader }
                 }
-            },
+            }
             Err(val) => {
                 error!("Error reading file {}: {}", filename, val);
-                Shader{ id: 0 } // FIXME: Proper error handling
+                Shader { id: 0 } // FIXME: Proper error handling
             }
         }
     }

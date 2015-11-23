@@ -4,15 +4,10 @@ use std;
 use shader_programs::ShaderPrograms;
 
 pub struct Rectangle {
-    vao: GLuint
+    vao: GLuint,
 }
 
-static VERTICES: [GLfloat; 8] = [
-    0.0, 1.0,
-    1.0, 1.0,
-    1.0, 0.0,
-    0.0, 0.0,
-];
+static VERTICES: [GLfloat; 8] = [0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0];
 
 impl Rectangle {
     pub fn new(shader_programs: &ShaderPrograms) -> Rectangle {
@@ -26,7 +21,8 @@ impl Rectangle {
             gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
             gl::BufferData(gl::ARRAY_BUFFER,
                            (VERTICES.len() * std::mem::size_of::<GLfloat>()) as GLsizeiptr,
-                           std::mem::transmute(&VERTICES[0]), gl::STATIC_DRAW);
+                           std::mem::transmute(&VERTICES[0]),
+                           gl::STATIC_DRAW);
 
             shader_programs.simple.use_program();
 
@@ -35,9 +31,7 @@ impl Rectangle {
             gl::EnableVertexAttribArray(pos_attrib);
         }
 
-        Rectangle {
-            vao: vao
-        }
+        Rectangle { vao: vao }
     }
 
     pub fn draw(&self, shader_programs: &mut ShaderPrograms) {

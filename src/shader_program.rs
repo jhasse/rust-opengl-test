@@ -35,7 +35,11 @@ impl ShaderProgram {
             gl::AttachShader(id, fragment_shader.id);
             gl::LinkProgram(id);
 
-            let mut this = ShaderProgram{ id: id, projection_uniform: -1, modelview_uniform: -1 };
+            let mut this = ShaderProgram {
+                id: id,
+                projection_uniform: -1,
+                modelview_uniform: -1,
+            };
 
             this.use_program();
             this.projection_uniform = this.get_uniform_location("projection");
@@ -65,14 +69,18 @@ impl ShaderProgram {
     pub fn set_modelview_matrix(&self, matrix: &Mat4<f32>) {
         unsafe {
             gl::UseProgram(self.id);
-            gl::UniformMatrix4fv(self.modelview_uniform, 1, 0,
+            gl::UniformMatrix4fv(self.modelview_uniform,
+                                 1,
+                                 0,
                                  mem::transmute(matrix.as_ref()));
         }
     }
     pub fn set_projection_matrix(&self, matrix: &Mat4<f32>) {
         unsafe {
             gl::UseProgram(self.id);
-            gl::UniformMatrix4fv(self.projection_uniform, 1, 0,
+            gl::UniformMatrix4fv(self.projection_uniform,
+                                 1,
+                                 0,
                                  mem::transmute(matrix.as_ref()));
         }
     }
