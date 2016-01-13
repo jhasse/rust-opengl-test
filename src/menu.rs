@@ -9,15 +9,12 @@ pub struct Menu {
 
 impl Menu {
     pub fn new(shader_programs: &ShaderPrograms, face: &mut Face) -> Menu {
-        Menu{
-            text: Text::new(&shader_programs, face, "Hallo Welt!")
-        }
+        Menu { text: Text::new(&shader_programs, face, "Hallo Welt!") }
     }
 }
 
 impl GameObject for Menu {
-    fn step(&mut self) {
-    }
+    fn step(&mut self) {}
 
     fn draw(&self, shader_programs: &mut ShaderPrograms) {
         self.text.draw(shader_programs);

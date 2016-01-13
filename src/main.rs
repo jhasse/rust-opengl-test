@@ -1,6 +1,7 @@
 extern crate gl;
 extern crate glutin;
-#[macro_use] extern crate log;
+#[macro_use]
+extern crate log;
 extern crate freetype;
 extern crate nalgebra;
 extern crate time;

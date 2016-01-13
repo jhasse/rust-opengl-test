@@ -8,7 +8,7 @@ pub struct Character {
     width: GLfloat,
     left: GLfloat,
     top: GLfloat,
-    texture: Option<Texture>
+    texture: Option<Texture>,
 }
 
 impl Character {
@@ -22,7 +22,9 @@ impl Character {
             width: (glyph.advance().x >> 6) as GLfloat * 0.001,
             left: glyph.bitmap_left() as GLfloat * 0.001,
             top: glyph.bitmap_top() as GLfloat * 0.001,
-            texture: if bitmap.width() == 0 { None } else {
+            texture: if bitmap.width() == 0 {
+                None
+            } else {
                 let mut buffer: Vec<u8> = Vec::new();
                 for y in 0..bitmap.rows() {
                     for x in 0..bitmap.width() {
@@ -32,9 +34,8 @@ impl Character {
                         buffer.push(bitmap.buffer()[(bitmap.width() * y + x) as usize]);
                     }
                 }
-                Some(Texture::new(shader_programs, bitmap.width(), bitmap.rows(),
-                                  &*buffer))
-            }
+                Some(Texture::new(shader_programs, bitmap.width(), bitmap.rows(), &*buffer))
+            },
         }
     }
     pub fn draw(&self, shader_programs: &mut ShaderPrograms) {
@@ -44,8 +45,8 @@ impl Character {
                 tmp.translate(self.left, self.top);
                 shader_programs.set_uniform(&tmp);
                 t.draw();
-            },
-            _ => ()
+            }
+            _ => (),
         }
         shader_programs.modelview.translate(self.width, 0.0);
     }

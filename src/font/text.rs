@@ -4,7 +4,7 @@ use shader_programs::ShaderPrograms;
 use engine::game_object::GameObject;
 
 pub struct Text {
-    characters: Vec<Character>
+    characters: Vec<Character>,
 }
 
 impl Text {
@@ -13,13 +13,12 @@ impl Text {
         for ch in text.chars() {
             characters.push(Character::new(shader_programs, &mut face.ft_face, ch));
         }
-        Text{ characters: characters }
+        Text { characters: characters }
     }
 }
 
 impl GameObject for Text {
-    fn step(&mut self) {
-    }
+    fn step(&mut self) {}
 
     fn draw(&self, shader_programs: &mut ShaderPrograms) {
         for ch in self.characters.iter() {
