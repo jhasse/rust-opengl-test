@@ -7,7 +7,7 @@ use shader::Shader;
 use rectangle::Rectangle;
 use gl;
 use std;
-use std::thread::sleep_ms;
+use std::thread::sleep;
 use std::ffi::CString;
 use nalgebra;
 use shader_programs::ShaderPrograms;
@@ -206,7 +206,7 @@ impl Window {
                 if dif >= 0.008 {
                     break;
                 }
-                sleep_ms((1000. * (0.008 - dif)) as u32);
+                sleep(std::time::Duration::from_millis((1000. * (0.008 - dif)) as u64));
             }
 
             unsafe {
