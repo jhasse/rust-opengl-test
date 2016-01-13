@@ -39,7 +39,7 @@ impl Window {
             .build().unwrap();
         let _ = unsafe { window.make_current() };
 
-        gl::load_with(|s| window.get_proc_address(s) as *const ());
+        gl::load_with(|s| window.get_proc_address(s) as *const std::os::raw::c_void);
 
         let shader_programs = ShaderPrograms::new(&paths);
 

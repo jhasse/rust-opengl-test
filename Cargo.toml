@@ -1,7 +1,7 @@
 [package]
 name = "rust-opengl-test"
-version = "0.1.0"
-authors = [ "jhasse@gmail.com" ]
+version = "0.2.0"
+authors = [ "jhasse@bixense.com" ]
 
 [[bin]]
 name = "rust-opengl-test"
@@ -9,15 +9,7 @@ name = "rust-opengl-test"
 [dependencies]
 log = "*"
 time = "*"
-
-[dependencies.gl]
-git = "https://github.com/bjz/gl-rs.git"
-
-[dependencies.glutin]
-git = "https://github.com/tomaka/glutin"
-
-[dependencies.freetype-rs]
-git = "https://github.com/PistonDevelopers/freetype-rs"
-
-[dependencies.nalgebra]
-git = "https://github.com/sebcrozet/nalgebra"
+gl = "*"
+glutin = "*"
+freetype-rs = "*"
+nalgebra = "*"

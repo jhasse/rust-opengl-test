@@ -7,7 +7,6 @@ pub struct Menu {
     text: Text,
 }
 
-
 impl Menu {
     pub fn new(shader_programs: &ShaderPrograms, face: &mut Face) -> Menu {
         Menu{
