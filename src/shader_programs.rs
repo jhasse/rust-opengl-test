@@ -1,6 +1,6 @@
 use paths::Paths;
 use shader_program::ShaderProgram;
-use nalgebra::Mat4;
+use nalgebra::Matrix4;
 use modelview::Modelview;
 
 pub struct ShaderPrograms {
@@ -18,12 +18,12 @@ impl ShaderPrograms {
         }
     }
 
-    pub fn set_modelview_matrix(&self, matrix: &Mat4<f32>) {
+    pub fn set_modelview_matrix(&self, matrix: &Matrix4<f32>) {
         self.simple.set_modelview_matrix(matrix);
         self.texture.set_modelview_matrix(matrix);
     }
 
-    pub fn set_projection_matrix(&self, matrix: &Mat4<f32>) {
+    pub fn set_projection_matrix(&self, matrix: &Matrix4<f32>) {
         self.simple.set_projection_matrix(matrix);
         self.texture.set_projection_matrix(matrix);
     }

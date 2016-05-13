@@ -4,7 +4,7 @@ use shader::Shader;
 use paths::Paths;
 use gl::types::{GLuint, GLint};
 use std::ffi::CString;
-use nalgebra::Mat4;
+use nalgebra::Matrix4;
 use std::mem;
 
 pub struct ShaderProgram {
@@ -62,14 +62,14 @@ impl ShaderProgram {
         assert!(location != -1);
         location
     }
-    pub fn set_modelview_matrix(&self, matrix: &Mat4<f32>) {
+    pub fn set_modelview_matrix(&self, matrix: &Matrix4<f32>) {
         unsafe {
             gl::UseProgram(self.id);
             gl::UniformMatrix4fv(self.modelview_uniform, 1, 0,
                                  mem::transmute(matrix.as_ref()));
         }
     }
-    pub fn set_projection_matrix(&self, matrix: &Mat4<f32>) {
+    pub fn set_projection_matrix(&self, matrix: &Matrix4<f32>) {
         unsafe {
             gl::UseProgram(self.id);
             gl::UniformMatrix4fv(self.projection_uniform, 1, 0,

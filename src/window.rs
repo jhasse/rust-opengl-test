@@ -156,7 +156,7 @@ impl Window {
 
             gl::Viewport(0, 0, self.width as i32, self.height as i32);
 
-            let mut projection: nalgebra::Mat4<f32> = nalgebra::new_identity(4);
+            let mut projection: nalgebra::Matrix4<f32> = nalgebra::new_identity(4);
             projection[(0,0)] = self.height as f32 / self.width as f32;
             self.shader_programs.set_projection_matrix(&projection);
         }
