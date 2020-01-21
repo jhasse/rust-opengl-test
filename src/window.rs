@@ -26,7 +26,7 @@ pub struct Window {
     shader_program: GLuint,
     width: u32,
     height: u32,
-    work: Box<GameObject>,
+    work: Box<dyn GameObject>,
 }
 
 impl Window {
