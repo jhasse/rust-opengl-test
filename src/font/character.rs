@@ -13,7 +13,7 @@ pub struct Character {
 
 impl Character {
     pub fn new(shader_programs: &ShaderPrograms, face: &freetype::Face, ch: char) -> Character {
-        (*face).load_char(ch as usize, freetype::face::RENDER).unwrap();
+        (*face).load_char(ch as usize, freetype::face::LoadFlag::RENDER).unwrap();
 
         let ref glyph = face.glyph();
         let ref bitmap = glyph.bitmap();

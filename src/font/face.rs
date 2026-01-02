@@ -2,13 +2,13 @@ extern crate freetype;
 
 use crate::paths::Paths;
 
-pub struct Face<'a> {
-    pub ft_face: freetype::Face<'a>
+pub struct Face {
+    pub ft_face: freetype::Face,
 }
 
-impl<'a> Face<'a> {
+impl Face {
     pub fn new(freetype: &freetype::Library, paths: &Paths,
-               filename: &str, size: isize) -> Face<'a> {
+               filename: &str, size: isize) -> Face {
         let mut path = paths.prefix.clone();
         path.push("data");
         path.push("fonts");

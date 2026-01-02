@@ -22,6 +22,7 @@ mod rectangle;
 
 fn main() {
     let paths = Paths::new();
-    let mut window = Window::new(&paths);
-    window.main_loop();
+    let mut events_loop = glutin::EventsLoop::new();
+    let mut window = Window::new(&paths, &events_loop);
+    window.main_loop(&mut events_loop);
 }

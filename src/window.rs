@@ -1,5 +1,5 @@
-use glutin;
-use glutin::Event::Resized;
+use glutin::{Api, ContextBuilder, EventsLoop, GlContext, GlRequest, WindowBuilder, GlWindow};
+use glutin::{Event, WindowEvent};
 use gl::types::{GLint, GLuint, GLfloat, GLsizeiptr};
 use crate::paths::Paths;
 use crate::shader::Shader;
@@ -16,7 +16,7 @@ use crate::engine::game_object::GameObject;
 use crate::menu::Menu;
 
 pub struct Window {
-    glutin_window: glutin::Window,
+    ctx: GlWindow,
     shader_programs: ShaderPrograms,
     buffer: GLuint,
     fbo: GLuint,
@@ -29,16 +29,20 @@ pub struct Window {
 }
 
 impl Window {
-    pub fn new(paths: &Paths) -> Window {
+    pub fn new(paths: &Paths, events_loop: &EventsLoop) -> Window {
         let width = 1280;
         let height = 720;
-        let window = glutin::WindowBuilder::new()
+        let window_builder = WindowBuilder::new()
             .with_dimensions(width, height)
-            .with_title("rust-opengl-test".to_string())
-            .build().unwrap();
-        let _ = unsafe { window.make_current() };
+            .with_title("rust-opengl-test".to_string());
 
-        gl::load_with(|s| window.get_proc_address(s) as *const std::os::raw::c_void);
+        let context = ContextBuilder::new()
+            .with_gl(GlRequest::Specific(Api::OpenGl, (3, 3)))
+            .with_srgb(true);
+
+        let gl_window = GlWindow::new(window_builder, context, events_loop).unwrap();
+        unsafe { gl_window.make_current().unwrap() };
+        gl::load_with(|s| gl_window.get_proc_address(s) as *const std::os::raw::c_void);
 
         let shader_programs = ShaderPrograms::new(&paths);
 
@@ -61,7 +65,7 @@ impl Window {
         let work = Box::new(Menu::new(&shader_programs, &mut face));
 
         let mut this = Window {
-            glutin_window: window,
+            ctx: gl_window,
             shader_programs: shader_programs, buffer: buffer, fbo: fbo,
             vao: vao, texture: 0, shader_program: shader_program, width: width, height: height,
             work: work,
@@ -129,6 +133,10 @@ impl Window {
             gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
         }
 
+        this.buffer = buffer;
+        this.fbo = fbo;
+        this.vao = vao;
+
         this
     }
 
@@ -160,29 +168,39 @@ impl Window {
         }
     }
 
-    pub fn main_loop(&mut self) {
+    pub fn main_loop(&mut self, events_loop: &mut EventsLoop) {
         let triangle = create_triangle(&self.shader_programs);
         let rect = Rectangle::new(&self.shader_programs);
-    let mut last_time = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs_f64();
+
+        let mut last_time = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs_f64();
         let mut frames = 0.0;
         let mut counter = 0.0;
+        let mut running = true;
 
-        //let joystick = glfw::Joystick{ id: glfw::JoystickId::Joystick1, glfw: self.glfw };
-
-        'main: loop {
+        while running {
             let mut should_resize = false;
-            for event in self.glutin_window.poll_events() {
+            events_loop.poll_events(|event| {
                 match event {
-                    Resized(width, height) => {
-                        self.width = width as u32;
-                        self.height = height as u32;
-                        should_resize = true;
+                    Event::WindowEvent { event, .. } => {
+                        match event {
+                            WindowEvent::Resized(w, h) => {
+                                self.width = w as u32;
+                                self.height = h as u32;
+                                self.ctx.resize(w, h);
+                                should_resize = true;
+                            }
+                            WindowEvent::Closed => {
+                                running = false;
+                            }
+                            _ => {}
+                        }
                     }
-                    glutin::Event::Closed => {
-                        break 'main;
-                    }
-                    _ => {},
+                    _ => {}
                 }
+            });
+
+            if !running {
+                break;
             }
             if should_resize {
                 self.resize();
@@ -195,7 +213,7 @@ impl Window {
             if counter >= 1.0 {
                 frames *= counter;
                 counter -= 1.0;
-                self.glutin_window.set_title(&*format!("clew - FPS: {}", frames as usize));
+                self.ctx.set_title(&format!("clew - FPS: {}", frames as usize));
                 frames = 0.0;
             }
             loop {
@@ -252,7 +270,7 @@ impl Window {
                 gl::DrawArrays(gl::TRIANGLE_FAN, 0, 4);
             }
 
-            let _ = self.glutin_window.swap_buffers();
+            let _ = self.ctx.swap_buffers();
         }
     }
 }
