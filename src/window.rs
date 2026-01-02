@@ -1,5 +1,6 @@
 use glutin::{Api, ContextBuilder, EventsLoop, GlContext, GlRequest, WindowBuilder, GlWindow};
 use glutin::{Event, WindowEvent};
+use glutin::dpi::LogicalSize;
 use gl::types::{GLint, GLuint, GLfloat, GLsizeiptr};
 use crate::paths::Paths;
 use crate::shader::Shader;
@@ -30,10 +31,10 @@ pub struct Window {
 
 impl Window {
     pub fn new(paths: &Paths, events_loop: &EventsLoop) -> Window {
-        let width = 1280;
-        let height = 720;
+        let width = 1280u32;
+        let height = 720u32;
         let window_builder = WindowBuilder::new()
-            .with_dimensions(width, height)
+            .with_dimensions(LogicalSize::new(width as f64, height as f64))
             .with_title("rust-opengl-test".to_string());
 
         let context = ContextBuilder::new()
@@ -183,10 +184,11 @@ impl Window {
                 match event {
                     Event::WindowEvent { event, .. } => {
                         match event {
-                            WindowEvent::Resized(w, h) => {
-                                self.width = w as u32;
-                                self.height = h as u32;
-                                self.ctx.resize(w, h);
+                            WindowEvent::Resized(size) => {
+                                self.width = size.width as u32;
+                                self.height = size.height as u32;
+                                let physical_size = size.to_physical(self.ctx.get_hidpi_factor());
+                                self.ctx.resize(physical_size);
                                 should_resize = true;
                             }
                             WindowEvent::CloseRequested => {
