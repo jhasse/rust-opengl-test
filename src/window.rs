@@ -1,5 +1,5 @@
-use glutin::{Api, ContextBuilder, EventsLoop, ContextTrait, GlRequest, WindowBuilder, WindowedContext};
-use glutin::{Event, WindowEvent};
+use glutin::{Api, ContextBuilder, EventsLoop, GlRequest, WindowBuilder, WindowedContext};
+use glutin::{Event, WindowEvent, PossiblyCurrent};
 use glutin::dpi::LogicalSize;
 use gl::types::{GLint, GLuint, GLfloat, GLsizeiptr};
 use crate::paths::Paths;
@@ -17,7 +17,7 @@ use crate::engine::game_object::GameObject;
 use crate::menu::Menu;
 
 pub struct Window {
-    ctx: WindowedContext,
+    ctx: WindowedContext<PossiblyCurrent>,
     shader_programs: ShaderPrograms,
     buffer: GLuint,
     fbo: GLuint,
@@ -42,7 +42,7 @@ impl Window {
             .with_srgb(true);
 
         let windowed_context = context.build_windowed(window_builder, events_loop).unwrap();
-        unsafe { windowed_context.make_current().unwrap() };
+        let windowed_context = unsafe { windowed_context.make_current().unwrap() };
         gl::load_with(|s| windowed_context.get_proc_address(s) as *const std::os::raw::c_void);
 
         let shader_programs = ShaderPrograms::new(&paths);
@@ -187,7 +187,7 @@ impl Window {
                             WindowEvent::Resized(size) => {
                                 self.width = size.width as u32;
                                 self.height = size.height as u32;
-                                let physical_size = size.to_physical(self.ctx.get_hidpi_factor());
+                                let physical_size = size.to_physical(self.ctx.window().get_hidpi_factor());
                                 self.ctx.resize(physical_size);
                                 should_resize = true;
                             }
@@ -215,7 +215,7 @@ impl Window {
             if counter >= 1.0 {
                 frames *= counter;
                 counter -= 1.0;
-                self.ctx.set_title(&format!("clew - FPS: {}", frames as usize));
+                self.ctx.window().set_title(&format!("clew - FPS: {}", frames as usize));
                 frames = 0.0;
             }
             loop {
