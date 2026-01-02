@@ -1,20 +1,19 @@
 use glutin;
-use time;
 use glutin::Event::Resized;
 use gl::types::{GLint, GLuint, GLfloat, GLsizeiptr};
-use paths::Paths;
-use shader::Shader;
-use rectangle::Rectangle;
+use crate::paths::Paths;
+use crate::shader::Shader;
+use crate::rectangle::Rectangle;
 use gl;
 use std;
 use std::thread::sleep;
 use std::ffi::CString;
 use nalgebra;
-use shader_programs::ShaderPrograms;
+use crate::shader_programs::ShaderPrograms;
 use freetype;
-use font::face::Face;
-use engine::game_object::GameObject;
-use menu::Menu;
+use crate::font::face::Face;
+use crate::engine::game_object::GameObject;
+use crate::menu::Menu;
 
 pub struct Window {
     glutin_window: glutin::Window,
@@ -26,7 +25,7 @@ pub struct Window {
     shader_program: GLuint,
     width: u32,
     height: u32,
-    work: Box<GameObject>,
+    work: Box<dyn GameObject>,
 }
 
 impl Window {
@@ -155,8 +154,7 @@ impl Window {
             assert!(gl::CheckFramebufferStatus(gl::FRAMEBUFFER) == gl::FRAMEBUFFER_COMPLETE);
 
             gl::Viewport(0, 0, self.width as i32, self.height as i32);
-
-            let mut projection: nalgebra::Matrix4<f32> = nalgebra::new_identity(4);
+            let mut projection: nalgebra::Matrix4<f32> = nalgebra::Matrix4::<f32>::identity();
             projection[(0,0)] = self.height as f32 / self.width as f32;
             self.shader_programs.set_projection_matrix(&projection);
         }
@@ -165,8 +163,7 @@ impl Window {
     pub fn main_loop(&mut self) {
         let triangle = create_triangle(&self.shader_programs);
         let rect = Rectangle::new(&self.shader_programs);
-
-        let mut last_time = time::precise_time_s();
+    let mut last_time = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs_f64();
         let mut frames = 0.0;
         let mut counter = 0.0;
 
@@ -192,7 +189,7 @@ impl Window {
             }
 
             let old = last_time;
-            last_time = time::precise_time_s();
+            last_time = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs_f64();
             counter += last_time - old;
             frames += 1.0;
             if counter >= 1.0 {
@@ -202,7 +199,7 @@ impl Window {
                 frames = 0.0;
             }
             loop {
-                let dif = time::precise_time_s() - last_time;
+                let dif = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs_f64() - last_time;
                 if dif >= 0.008 {
                     break;
                 }

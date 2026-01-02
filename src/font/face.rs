@@ -1,6 +1,6 @@
 extern crate freetype;
 
-use paths::Paths;
+use crate::paths::Paths;
 
 pub struct Face<'a> {
     pub ft_face: freetype::Face<'a>

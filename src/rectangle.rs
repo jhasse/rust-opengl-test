@@ -1,7 +1,7 @@
 use gl::types::{GLuint, GLfloat, GLsizeiptr};
 use gl;
 use std;
-use shader_programs::ShaderPrograms;
+use crate::shader_programs::ShaderPrograms;
 
 pub struct Rectangle {
     vao: GLuint

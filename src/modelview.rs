@@ -7,7 +7,7 @@ pub struct Modelview {
 
 impl Modelview {
     pub fn new() -> Modelview {
-        Modelview{ matrix: new_identity(4) }
+        Modelview{ matrix: Matrix4::<f32>::identity() }
     }
 
     pub fn translate(&mut self, x: f32, y: f32) {
@@ -18,6 +18,6 @@ impl Modelview {
     }
 
     pub fn reset(&mut self) {
-        self.matrix = new_identity(4);
+        self.matrix = Matrix4::<f32>::identity();
     }
 }

@@ -4,7 +4,7 @@ extern crate log;
 use gl::types::{GLuint, GLfloat, GLsizeiptr, GLsizei, GLint};
 use std;
 use std::mem;
-use shader_programs::ShaderPrograms;
+use crate::shader_programs::ShaderPrograms;
 
 pub struct Texture {
     pub id: GLuint,

@@ -1,7 +1,7 @@
-use engine::game_object::GameObject;
-use shader_programs::ShaderPrograms;
-use font::text::Text;
-use font::face::Face;
+use crate::engine::game_object::GameObject;
+use crate::shader_programs::ShaderPrograms;
+use crate::font::text::Text;
+use crate::font::face::Face;
 
 pub struct Menu {
     text: Text,

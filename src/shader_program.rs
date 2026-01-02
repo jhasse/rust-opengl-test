@@ -1,7 +1,7 @@
 extern crate gl;
 
-use shader::Shader;
-use paths::Paths;
+use crate::shader::Shader;
+use crate::paths::Paths;
 use gl::types::{GLuint, GLint};
 use std::ffi::CString;
 use nalgebra::Matrix4;

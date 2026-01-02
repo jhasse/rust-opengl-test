@@ -1,7 +1,7 @@
 extern crate freetype;
 
-use texture::Texture;
-use shader_programs::ShaderPrograms;
+use crate::texture::Texture;
+use crate::shader_programs::ShaderPrograms;
 use gl::types::GLfloat;
 
 pub struct Character {

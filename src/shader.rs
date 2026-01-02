@@ -4,7 +4,7 @@ use gl::types::{GLuint, GLint, GLenum};
 use std::fs::File;
 use std;
 use std::ffi::CString;
-use paths::Paths;
+use crate::paths::Paths;
 use std::path::Path;
 use std::io::Read;
 

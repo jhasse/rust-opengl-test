@@ -1,7 +1,7 @@
-use font::character::Character;
-use font::face::Face;
-use shader_programs::ShaderPrograms;
-use engine::game_object::GameObject;
+use crate::font::character::Character;
+use crate::font::face::Face;
+use crate::shader_programs::ShaderPrograms;
+use crate::engine::game_object::GameObject;
 
 pub struct Text {
     characters: Vec<Character>

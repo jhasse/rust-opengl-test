@@ -1,7 +1,7 @@
-use paths::Paths;
-use shader_program::ShaderProgram;
+use crate::paths::Paths;
+use crate::shader_program::ShaderProgram;
 use nalgebra::Matrix4;
-use modelview::Modelview;
+use crate::modelview::Modelview;
 
 pub struct ShaderPrograms {
     pub simple: ShaderProgram,

@@ -2,14 +2,15 @@
 name = "rust-opengl-test"
 version = "0.2.0"
 authors = [ "jhasse@bixense.com" ]
+edition = "2021"
 
 [[bin]]
 name = "rust-opengl-test"
 
 [dependencies]
-log = "*"
-time = "*"
-gl = "*"
-glutin = "*"
-freetype-rs = "*"
-nalgebra = "*"
+log = "0.4"
+time = "0.3"
+gl = "0.14"
+glutin = "0.9"
+freetype-rs = "0.26"
+nalgebra = "0.32"
