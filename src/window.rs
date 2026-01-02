@@ -1,4 +1,4 @@
-use glutin::{Api, ContextBuilder, EventsLoop, GlContext, GlRequest, WindowBuilder, GlWindow};
+use glutin::{Api, ContextBuilder, EventsLoop, ContextTrait, GlRequest, WindowBuilder, WindowedContext};
 use glutin::{Event, WindowEvent};
 use glutin::dpi::LogicalSize;
 use gl::types::{GLint, GLuint, GLfloat, GLsizeiptr};
@@ -17,7 +17,7 @@ use crate::engine::game_object::GameObject;
 use crate::menu::Menu;
 
 pub struct Window {
-    ctx: GlWindow,
+    ctx: WindowedContext,
     shader_programs: ShaderPrograms,
     buffer: GLuint,
     fbo: GLuint,
@@ -41,9 +41,9 @@ impl Window {
             .with_gl(GlRequest::Specific(Api::OpenGl, (3, 3)))
             .with_srgb(true);
 
-        let gl_window = GlWindow::new(window_builder, context, events_loop).unwrap();
-        unsafe { gl_window.make_current().unwrap() };
-        gl::load_with(|s| gl_window.get_proc_address(s) as *const std::os::raw::c_void);
+        let windowed_context = context.build_windowed(window_builder, events_loop).unwrap();
+        unsafe { windowed_context.make_current().unwrap() };
+        gl::load_with(|s| windowed_context.get_proc_address(s) as *const std::os::raw::c_void);
 
         let shader_programs = ShaderPrograms::new(&paths);
 
@@ -66,7 +66,7 @@ impl Window {
         let work = Box::new(Menu::new(&shader_programs, &mut face));
 
         let mut this = Window {
-            ctx: gl_window,
+            ctx: windowed_context,
             shader_programs: shader_programs, buffer: buffer, fbo: fbo,
             vao: vao, texture: 0, shader_program: shader_program, width: width, height: height,
             work: work,
