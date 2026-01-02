@@ -1,5 +1,7 @@
-use glutin::{Api, ContextBuilder, EventsLoop, GlRequest, WindowBuilder, WindowedContext};
-use glutin::{Event, WindowEvent, PossiblyCurrent};
+use glutin::event_loop::EventLoop;
+use glutin::window::WindowBuilder;
+use glutin::{Api, ContextBuilder, GlRequest, WindowedContext, PossiblyCurrent};
+use glutin::event::Event;
 use glutin::dpi::LogicalSize;
 use gl::types::{GLint, GLuint, GLfloat, GLsizeiptr};
 use crate::paths::Paths;
@@ -7,7 +9,6 @@ use crate::shader::Shader;
 use crate::rectangle::Rectangle;
 use gl;
 use std;
-use std::thread::sleep;
 use std::ffi::CString;
 use nalgebra;
 use crate::shader_programs::ShaderPrograms;
@@ -30,11 +31,11 @@ pub struct Window {
 }
 
 impl Window {
-    pub fn new(paths: &Paths, events_loop: &EventsLoop) -> Window {
+    pub fn new(paths: &Paths, events_loop: &EventLoop<()>) -> Window {
         let width = 1280u32;
         let height = 720u32;
         let window_builder = WindowBuilder::new()
-            .with_dimensions(LogicalSize::new(width as f64, height as f64))
+            .with_inner_size(LogicalSize::new(width as f64, height as f64))
             .with_title("rust-opengl-test".to_string());
 
         let context = ContextBuilder::new()
@@ -169,111 +170,69 @@ impl Window {
         }
     }
 
-    pub fn main_loop(&mut self, events_loop: &mut EventsLoop) {
+    pub fn handle_resize(&mut self, size: glutin::dpi::PhysicalSize<u32>) {
+        self.width = size.width;
+        self.height = size.height;
+        self.ctx.resize(size);
+        self.resize();
+    }
+
+    pub fn render_frame(&mut self, last_time: &mut std::time::Instant, frames: &mut f64, counter: &mut f64) {
+        use std::time::Instant;
+
         let triangle = create_triangle(&self.shader_programs);
         let rect = Rectangle::new(&self.shader_programs);
 
-        let mut last_time = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs_f64();
-        let mut frames = 0.0;
-        let mut counter = 0.0;
-        let mut running = true;
+        let now = Instant::now();
+        let elapsed = now.duration_since(*last_time).as_secs_f64();
+        *last_time = now;
 
-        while running {
-            let mut should_resize = false;
-            events_loop.poll_events(|event| {
-                match event {
-                    Event::WindowEvent { event, .. } => {
-                        match event {
-                            WindowEvent::Resized(size) => {
-                                self.width = size.width as u32;
-                                self.height = size.height as u32;
-                                let physical_size = size.to_physical(self.ctx.window().get_hidpi_factor());
-                                self.ctx.resize(physical_size);
-                                should_resize = true;
-                            }
-                            WindowEvent::CloseRequested => {
-                                running = false;
-                            }
-                            _ => {}
-                        }
-                    }
-                    _ => {}
-                }
-            });
-
-            if !running {
-                break;
-            }
-            if should_resize {
-                self.resize();
-            }
-
-            let old = last_time;
-            last_time = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs_f64();
-            counter += last_time - old;
-            frames += 1.0;
-            if counter >= 1.0 {
-                frames *= counter;
-                counter -= 1.0;
-                self.ctx.window().set_title(&format!("clew - FPS: {}", frames as usize));
-                frames = 0.0;
-            }
-            loop {
-                let dif = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs_f64() - last_time;
-                if dif >= 0.008 {
-                    break;
-                }
-                sleep(std::time::Duration::from_millis((1000. * (0.008 - dif)) as u64));
-            }
-
-            unsafe {
-                gl::BindRenderbuffer(gl::RENDERBUFFER, self.buffer);
-                gl::BindFramebuffer(gl::FRAMEBUFFER, self.fbo);
-                gl::ClearColor(0.5, 0.5, 0.5, 1.0);
-                gl::Clear(gl::COLOR_BUFFER_BIT);
-
-                gl::BindBuffer(gl::ARRAY_BUFFER, 123);
-                gl::BindVertexArray(triangle.vao);
-            }
-
-            self.shader_programs.modelview.reset();
-            self.shader_programs.simple.use_program();
-
-            /*if joystick.is_present() {
-                unsafe {
-                    self.shader_programs.modelview.translate(joystick.get_axes()[0].clone(),
-                                             joystick.get_axes()[1].clone());
-                    gl::ClearColor(joystick.get_axes()[2].clone(),
-                                   joystick.get_axes()[3].clone(),
-                                   0.5, 1.0);
-                }
-            } else*/ {
-                unsafe {
-                    gl::ClearColor(0.5, 0.5, 0.5, 1.0);
-                }
-            }
-            self.shader_programs.set_uniform(&self.shader_programs.modelview);
-            unsafe {
-                gl::DrawArrays(gl::TRIANGLES, 0, 3);
-            }
-
-            self.shader_programs.texture.use_program();
-            self.shader_programs.modelview.translate(-0.5, 0.0);
-            rect.draw(&mut self.shader_programs);
-            self.work.draw(&mut self.shader_programs);
-
-            unsafe {
-                gl::BindRenderbuffer(gl::RENDERBUFFER, 0);
-                gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
-                gl::UseProgram(self.shader_program);
-                gl::BindVertexArray(self.vao);
-                gl::ActiveTexture(gl::TEXTURE0);
-                gl::BindTexture(gl::TEXTURE_2D, self.texture);
-                gl::DrawArrays(gl::TRIANGLE_FAN, 0, 4);
-            }
-
-            let _ = self.ctx.swap_buffers();
+        *counter += elapsed;
+        *frames += 1.0;
+        if *counter >= 1.0 {
+            *frames *= *counter;
+            *counter -= 1.0;
+            self.ctx.window().set_title(&format!("clew - FPS: {}", *frames as usize));
+            *frames = 0.0;
         }
+
+        unsafe {
+            gl::BindRenderbuffer(gl::RENDERBUFFER, self.buffer);
+            gl::BindFramebuffer(gl::FRAMEBUFFER, self.fbo);
+            gl::ClearColor(0.5, 0.5, 0.5, 1.0);
+            gl::Clear(gl::COLOR_BUFFER_BIT);
+
+            gl::BindBuffer(gl::ARRAY_BUFFER, 123);
+            gl::BindVertexArray(triangle.vao);
+        }
+
+        self.shader_programs.modelview.reset();
+        self.shader_programs.simple.use_program();
+
+        unsafe {
+            gl::ClearColor(0.5, 0.5, 0.5, 1.0);
+        }
+        self.shader_programs.set_uniform(&self.shader_programs.modelview);
+        unsafe {
+            gl::DrawArrays(gl::TRIANGLES, 0, 3);
+        }
+
+        self.shader_programs.texture.use_program();
+        self.shader_programs.modelview.translate(-0.5, 0.0);
+        rect.draw(&mut self.shader_programs);
+        self.work.draw(&mut self.shader_programs);
+
+        unsafe {
+            gl::BindRenderbuffer(gl::RENDERBUFFER, 0);
+            gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
+            gl::UseProgram(self.shader_program);
+            gl::BindVertexArray(self.vao);
+            gl::ActiveTexture(gl::TEXTURE0);
+            gl::BindTexture(gl::TEXTURE_2D, self.texture);
+            gl::DrawArrays(gl::TRIANGLE_FAN, 0, 4);
+        }
+
+        let _ = self.ctx.swap_buffers();
     }
 }
 
