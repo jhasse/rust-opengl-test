@@ -268,9 +268,9 @@ dependencies = [
 
 [[package]]
 name = "glutin"
-version = "0.14.0"
+version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5ed2d11d21384aa2e0ad027105a26d93d5ca22c73da4000ddd0ecede89571cf0"
+checksum = "a9caee44b73388b2b4452ab783b13a1af80edb363bfc6e5292bdb2dd990a3171"
 dependencies = [
  "android_glue",
  "cgl",
@@ -792,9 +792,9 @@ dependencies = [
 
 [[package]]
 name = "winit"
-version = "0.12.0"
+version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a282d348b2a57f74617972c08dda0ff74a7383c9fe4f861a882e6fbba46a6521"
+checksum = "3706b5ba299cc9ed06d39b8021fc5edd5a7d27d8e99355ca09636fddd9b14cc0"
 dependencies = [
  "android_glue",
  "cocoa",

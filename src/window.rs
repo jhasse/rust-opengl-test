@@ -189,7 +189,7 @@ impl Window {
                                 self.ctx.resize(w, h);
                                 should_resize = true;
                             }
-                            WindowEvent::Closed => {
+                            WindowEvent::CloseRequested => {
                                 running = false;
                             }
                             _ => {}
